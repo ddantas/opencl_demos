@@ -1,125 +1,181 @@
-
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-
 #include <opencv2/core/types_c.h>
+#include <math.h>
+#define takeb fscanf(fp, "%d", &b)
 
-
-void PrintImageHeader(IplImage* img_in, char* msg)
-{
-  printf("%s\n", msg);
-  printf("Size: (w, h) = (%d, %d)\n", img_in->width, img_in->height);
-  printf("nChannels: %d\n", img_in->nChannels);
-  printf("depth: %d\n", img_in->depth);
-  printf("imageData: %p\n", img_in->imageData);
-}
-
-void PrintImageData(IplImage* img_in, char* msg)
-{
-  printf("%s\n", msg);
-  int w = img_in->width;
-  int h = img_in->height;
-  int n = img_in->nChannels;
-  for (int i = 0; i < h; i++){
-      printf("%d: ", i);
-      for (int j = 0; j < w; j++){
-          for (int k = 0; k < img_in->nChannels; k++){
-              printf("%2x ", img_in->imageData[i*w*n + j*n + k]  & 0xff);
-	  }
-      }
-      printf("\n");
+IplImage* icolor(IplImage *img){
+  int i=0;
+  switch (img->ID){
+  case 1:
+    for(;i<img->width*img->height;i++){
+      img->imageData[i]= 1 - img->imageData[i];
+    }
+    break;
+  case 2:
+    for(;i<img->width*img->height;i++){
+      img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
+    }
+    break;
+  case 3:
+    for(;i<img->width*img->height*3; i+=3){
+      img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
+    }
+    break;
+  case 4:
+  case 5:
+    for(i=1;i<img->width*img->height;i++)
+      img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
+    break;
+  case 6:
+    for(i=1;i<img->width*img->height*3;i++)
+      img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
+    break;
+  default:
+   printf("\nFormato de Imagem Invalido");
+   break;
   }
+  return img;
 }
 
-
-
-IplImage* imread(char* filename){
-    IplImage* img_out;
-    FILE *fp;
-    int w, h;
-    char p;
-    int key;
-
-    fp = fopen(filename, "r"); //abrindo a imagem apenas para leitura, para garantir que a imagem original não será alterada
-
-    fscanf(fp, "%c%d", &p, &key);
-
-    printf("%c%d\n", p, key);
-
-    //check for comments
-    char c = getc(fp);
-    while (c == '#' || c == 10)
-    {
-        while (getc(fp) != '\n')
-	{
-	}
-        c = getc(fp);
-    }
-    ungetc(c, fp);
+IplImage* iread(char *fname){
+  IplImage* img_out;
+  FILE *fp;
+  int w, h, i=0, type;
+  if((fp = fopen(fname, "r")) == NULL){
+    printf("\Erro na Abertura do Arquivo");
+    return NULL;
+  }
+  fscanf(fp, "P%d", &type);
+  printf("\ntype %d\n", type);
   
-
-    fscanf(fp, "%d %d", &w, &h);
-    printf("%d %d\n", w, h);
-
-    c = getc(fp);
-    while (c == '#' || c == 10)
-    {
-        while (getc(fp) != '\n')
-	{
-	}
-        c = getc(fp);
+  //check for comments if exist
+  //Ainda não suporta comentários...
+  
+  fscanf(fp, "%d %d", &w, &h);
+  img_out = (IplImage*) malloc(sizeof(IplImage));
+  int b, data;
+  switch (type){
+  case 1: 
+    img_out->imageData = (char*) malloc((1/8)*(w*h));
+    for(;i<w*h;++i){
+      fscanf(fp, "%d", &data);
+      img_out->imageData[i] = data;
     }
-    ungetc(c, fp);
-
-    printf("End of header\n");
-
-    img_out = (IplImage*) malloc(sizeof(IplImage));
-
-    switch (key) {
-		case 1:  //Se for P1, no formato .pbm (ASCII)
-		  img_out->imageData = malloc(w*h/8+1);
-                  fread(img_out->imageData, w*h/8+1, 1, fp);
-		  break;
-		case 2:  //Se for P2 no formato .pgm (ASCII)
-		  img_out->imageData = malloc(w*h);
-                  img_out->nChannels = 1;
-                  img_out->depth = IPL_DEPTH_8U;
-                  fread(img_out->imageData, w*h, 1, fp);
-		  break;
-		case 3:  //Se for P3 no formato .ppm (ASCII)
-		  img_out->imageData = malloc(w*h*3);
-                  img_out->nChannels = 3;
-                  img_out->depth = IPL_DEPTH_8U;
-                  fread(img_out->imageData, w*h*3, 1, fp);
-		  break;
-		case 4: //Se for P4 no formato .pbm (bin)
-		  img_out->imageData = malloc(w*h/8+1);
-                  fread(img_out->imageData, w*h/8+1, 1, fp);
-		  break;
-		case 5: 
-		  img_out->imageData = malloc(w*h);
-                  img_out->nChannels = 1;
-                  img_out->depth = IPL_DEPTH_8U;
-                  fread(img_out->imageData, w*h, 1, fp);
-		  break;
-		case 6: 
-		  img_out->imageData = malloc(w*h*3);
-                  img_out->nChannels = 3;
-                  img_out->depth = IPL_DEPTH_8U;
-                  fread(img_out->imageData, w*h*3, 1, fp);
-		  break;
-	}
-        img_out->width = w;
-        img_out->height = h;
-	fclose(fp);
-        return img_out;
+    break;
+ case 2:
+   img_out->imageData = (char*) malloc(w*h);
+   img_out->nChannels = 1;
+   img_out->depth = IPL_DEPTH_8U;
+   takeb;
+   for(;i<w*h;i++){
+     fscanf(fp, "%d", &data);
+     img_out->imageData[i]=data;
+   }
+   break;
+  case 3:
+    img_out->imageData = (char*) malloc(w*h*3);
+    img_out->nChannels = 3;
+    img_out->depth = IPL_DEPTH_8U;
+    takeb;
+    for(;i<w*h*3;i++){
+      fscanf(fp, "%d", &data);
+      img_out->imageData[i]=data;
+    }
+    break;
+  case 4:
+    img_out->imageData = (char*) malloc((1/8)*(w*h));
+    fread(img_out->imageData, ((1/8)*(w*h)), 1, fp);
+    break;
+  case 5:
+    img_out->imageData=(char*) malloc(w*h);
+    img_out->nChannels=1;
+    img_out->depth=IPL_DEPTH_8U;
+    takeb;
+    fread(img_out->imageData, w*h, 1, fp);
+    break;
+  case 6:
+    img_out->imageData = (char*) malloc(w*h*3);
+    img_out->nChannels = 3;
+    img_out->depth=IPL_DEPTH_8U;
+    takeb;
+    fread(img_out->imageData, w*h*3, 1, fp);
+    break;
+  default:
+    printf("/TIPO INVÁLIDO");
+    exit(0);
+    break;
+  }
+  img_out->ID = type;
+  img_out->width=w;
+  img_out->height=h;
+  fclose(fp);
+  return img_out;
 }
-
-
-/*
-int main()
-{
-  IplImage* img = imread("images/lena512color.ppm");
-  PrintImageData(img, "Reading lena image"); 
+void iwrite(IplImage *img, char *fname){
+  FILE *fp;
+  if((fp=fopen(fname, "w"))==NULL){
+    printf("\nERRO NA CRIAÇÃO DA IMAGEM");
+    return;
+  }
+  switch (img->ID){
+  case 1:
+    fprintf(fp, "P1\n%d %d\n", img->width, img->height);
+    break;
+  case 2:
+    fprintf(fp, "P2\n%d %d\n%d\n", img->width, img->height, (int)(pow(2, img->depth)-1));
+    break;
+  case 3:
+    fprintf(fp, "P3\n%d %d\n%d\n", img->width, img->height, (int)(pow(2, img->depth)-1));
+    break;
+  case 4:
+    fprintf(fp, "P4\n%d %d", img->width, img->height);
+    break;
+  case 5:
+    fprintf(fp, "P5\n%d %d\n%d", img->width, img->height, (int)(pow(2, img->depth)-1));
+    break;
+  case 6:
+    fprintf(fp, "P6\n%d %d\n%d", img->width, img->height, (int)(pow(2, img->depth)-1));
+    break;
+  default:
+    printf("\nTIPO DE IMAGEM INVÁLIDA");
+    exit(0);
+    break;
+  }
+  int i=0;
+  switch (img->ID){
+  case 1:
+  case 2:
+    for(;i<(img->width*img->height);i++)
+      fprintf(fp, "%d ", img->imageData[i]);
+    fprintf(fp, "\b");
+    break;
+  case 3:
+     for(;i<(img->width*img->height*3);i++)
+      fprintf(fp, "%d ", img->imageData[i]);
+    fprintf(fp, "\b");
+    break;
+  case 4:
+    fwrite(img->imageData, ((1/8)*(img->width*img->height)), 1, fp);
+    break;
+  case 5:
+    fwrite(img->imageData, (img->width*img->height), 1, fp);
+    break;
+  case 6:
+    fwrite(img->imageData, (img->width*img->height*3), 1, fp);
+    break;
+  }
+  fclose(fp);
 }
-*/
+int main(int argc, char *argv[]){
+	printf("\nInicio do programa");
+	IplImage *img; char val[5] = "sim\0";
+	img = iread(argv[1]); //argv[1] pega o nome de entrada da imagem
+	printf("\nTermino da leitura");
+	if(strcmp(val, argv[3])==0)
+	  icolor(img);
+	iwrite(img, argv[2]); //argv[2] pega o nome de saída da imagem
+	printf("\nPrograma finalizado\n");
+return 0;
+}
