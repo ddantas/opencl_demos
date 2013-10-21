@@ -1,3 +1,2 @@
-#simple makefile
-image2.out : image2.c
-	gcc image2.c -o image2.out -lm -I . -std=gnu99
+opp.out : opp.c
+	gcc -lOpenCL -I/opt/AMDAPP/include -I. -lm -std=gnu99 opp.c -o opp.out
