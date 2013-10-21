@@ -3,9 +3,8 @@
 #include <stdlib.h>
 #include <opencv2/core/types_c.h>
 #include <math.h>
-#define takeb fscanf(fp, "%d", &b)
 
-IplImage* icolor(IplImage *img){
+void icolor(IplImage *img){
   int i=0;
   switch (img->ID){
   case 1:
@@ -25,18 +24,18 @@ IplImage* icolor(IplImage *img){
     break;
   case 4:
   case 5:
-    for(i=1;i<img->width*img->height;i++)
+    for(;i<img->width*img->height;i++)
       img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
     break;
   case 6:
-    for(i=1;i<img->width*img->height*3;i++)
+    for(;i<img->width*img->height*3;i++)
       img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
     break;
   default:
    printf("\nFormato de Imagem Invalido");
    break;
   }
-  return img;
+  return;
 }
 
 IplImage* iread(char *fname){
@@ -53,9 +52,9 @@ IplImage* iread(char *fname){
   //check for comments if exist
   //Ainda não suporta comentários...
   
-  fscanf(fp, "%d %d", &w, &h);
+  fscanf(fp, "%d %d\n", &w, &h);
   img_out = (IplImage*) malloc(sizeof(IplImage));
-  int b, data;
+  unsigned int b, data;
   switch (type){
   case 1: 
     img_out->imageData = (char*) malloc((1/8)*(w*h));
@@ -68,7 +67,7 @@ IplImage* iread(char *fname){
    img_out->imageData = (char*) malloc(w*h);
    img_out->nChannels = 1;
    img_out->depth = IPL_DEPTH_8U;
-   takeb;
+   fscanf(fp, "%d\n", &b);
    for(;i<w*h;i++){
      fscanf(fp, "%d", &data);
      img_out->imageData[i]=data;
@@ -78,7 +77,7 @@ IplImage* iread(char *fname){
     img_out->imageData = (char*) malloc(w*h*3);
     img_out->nChannels = 3;
     img_out->depth = IPL_DEPTH_8U;
-    takeb;
+    fscanf(fp, "%d\n", &b);
     for(;i<w*h*3;i++){
       fscanf(fp, "%d", &data);
       img_out->imageData[i]=data;
@@ -92,14 +91,14 @@ IplImage* iread(char *fname){
     img_out->imageData=(char*) malloc(w*h);
     img_out->nChannels=1;
     img_out->depth=IPL_DEPTH_8U;
-    takeb;
+    fscanf(fp, "%d\n", &b) ;
     fread(img_out->imageData, w*h, 1, fp);
     break;
   case 6:
     img_out->imageData = (char*) malloc(w*h*3);
     img_out->nChannels = 3;
     img_out->depth=IPL_DEPTH_8U;
-    takeb;
+    fscanf(fp, "%d\n", &b);
     fread(img_out->imageData, w*h*3, 1, fp);
     break;
   default:
@@ -130,13 +129,13 @@ void iwrite(IplImage *img, char *fname){
     fprintf(fp, "P3\n%d %d\n%d\n", img->width, img->height, (int)(pow(2, img->depth)-1));
     break;
   case 4:
-    fprintf(fp, "P4\n%d %d", img->width, img->height);
+    fprintf(fp, "P4\n%d %d\n", img->width, img->height);
     break;
   case 5:
-    fprintf(fp, "P5\n%d %d\n%d", img->width, img->height, (int)(pow(2, img->depth)-1));
+    fprintf(fp, "P5\n%d %d\n%d\n", img->width, img->height, (int)(pow(2, img->depth)-1));
     break;
   case 6:
-    fprintf(fp, "P6\n%d %d\n%d", img->width, img->height, (int)(pow(2, img->depth)-1));
+    fprintf(fp, "P6\n%d %d\n%d\n", img->width, img->height, (int)(pow(2, img->depth)-1));
     break;
   default:
     printf("\nTIPO DE IMAGEM INVÁLIDA");
@@ -170,11 +169,17 @@ void iwrite(IplImage *img, char *fname){
 }
 int main(int argc, char *argv[]){
 	printf("\nInicio do programa");
-	IplImage *img; char val[5] = "sim\0";
+	IplImage *img;
 	img = iread(argv[1]); //argv[1] pega o nome de entrada da imagem
 	printf("\nTermino da leitura");
-	if(strcmp(val, argv[3])==0)
-	  icolor(img);
+	if(argc > 3){
+	  int c=3;
+	  char color[9]="-icolor\0";
+	  for(;c<argc;c++){
+	    if(strcmp(color, argv[c])==0)
+	      icolor(img);
+	  }
+	}   
 	iwrite(img, argv[2]); //argv[2] pega o nome de saída da imagem
 	printf("\nPrograma finalizado\n");
 return 0;
