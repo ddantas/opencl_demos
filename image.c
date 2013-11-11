@@ -197,33 +197,78 @@ void ImInvert(IplImage *img){
   }
   return;
 }
-void ImFlipH(IplImage* img){
-  int i, j, k;
-  char temp;
-  for(i=0;i<img->width*img->height;i++)
-    printf("%d ", (int)img->imageData[i]);
-  printf("\n");
-  i=0; k=0;
-  for(j=1;j<=img->width;j++){
-    for(;i<(img->height*j);i++){
-      printf("i=%d, j=%d, img[i]=%d, temp=%d, img[%d]=%d\n", i, j, (int)img->imageData[i], (int)temp,((img->height*j)-(k+1)), (int)img->imageData[(img->height*j)-(k+1)]);
-      temp = img->imageData[i];
-      img->imageData[i] = img->imageData[(img->height*j)-(k+1)];
-      img->imageData[(img->height*j)-(k+1)] = temp;
-      printf("\n");
-      for(i=0;i<img->width*img->height;i++)
-	printf("%d ", (int)img->imageData[i]);
-      printf("\n");
-      k++;
-    }
-    k=0;
-    j++;
-    i+=img->height;
-  }
-  for(i=0;i<img->width*img->height;i++)
-    printf("%d ", (int)img->imageData[i]);
-  printf("\n"); 
+
+void Support_FlipH(uchar *a){
+  uchar *a_out;
+  int i, j;
+  a_out = (uchar*)malloc(strlen(a));
+  for(i=(strlen(a)-1), j=0;i>=0, j<=(strlen(a)-1);i--, j++)
+    a_out[j] = a[i];
+  a = a_out;
+  free(a_out);
 }
+
+void ImFlipH(IplImage* img){
+  int i, x, j;
+  uchar *a;
+  switch(img->ID){
+  case 1:
+  case 2:
+  case 4:
+  case 5:
+    a = (char*)malloc(img->height);
+    for(i=1;i<=img->width;i++){
+      for(j=(img->height-1)*i, x=0;j<=((img->height-1)*(i+1));j++, x++)
+	a[x]=img->imageData[j];
+      Support_FlipH(a);
+      for(j=(img->height-1)*i, x=0;j<=((img->height-1)*(i+1));j++, x++)
+	img->imageData[j]=a[x];
+    } 
+    /*
+    for(i=1;i<=img->width;i++)
+      for(j=((img->height-1)*i), x=((img->height-1)*(i+1));j<=(((img->height-1)*(i+1)));j++, x--){
+	temp = img->imageData[j];
+	img->imageData[j]=img->imageData[x];
+	img->imageData[x] = temp;
+      }*/
+    break;
+  case 3:
+  case 6:
+    /*
+    for(i=1;i<=img->width;i++)
+      for(j=(((img->height-1)*3)*i), x=(((img->height-1)*3)*(i+1));j<=(((img->height-1)*(i+1))/2)*3;j++, x--){
+	temp = img->imageData[j];
+	img->imageData[j]=img->imageData[x];
+	img->imageData[x] = temp;
+      }
+    */
+    break;
+  }
+}
+
+void ImFlipV(IplImage* img){
+  int i, j, x;
+  uchar temp;
+  switch(img->ID){
+  case 1:
+  case 2:
+  case 4:
+  case 5:
+    for(i=1;i<=(img->width/2);i++)
+      for(j=(img->height-1)*i, x=(img->height-1)*(img->width-i);
+	  j<=((img->height-1)*(i+1)); j++, x++){
+	temp = img->imageData[j];
+	img->imageData[j] = img->imageData[x];
+	img->imageData[x] = temp;
+      }
+    break;
+  case 3:
+  case 6:
+    break;
+  }
+}
+
+
 int main(int argc, char *argv[]){
   printf("\n");
   IplImage *img;
@@ -232,11 +277,14 @@ int main(int argc, char *argv[]){
     int c=3;
     char color[9]="-icolor\0";
     char fliph[8]="-fliph\0";
+    char flipv[9]="-flipv\0";
     for(;c<argc;c++){
       if(strcmp(color, argv[c])==0)
 	ImInvert(img);
       if(strcmp(fliph, argv[c])==0)
 	ImFlipH(img);
+      if(strcmp(argc[c], flipv)==0)
+	ImFlipV(img);
     }
   }   
   ImWrite(img, argv[2]); //argv[2] pega o nome de saída da imagem
