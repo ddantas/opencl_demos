@@ -4,6 +4,10 @@
 #include<opencv2/core/types_c.h>
 #include<math.h>
 
+
+
+/*_____________________________________________________
+  ________________________________________________________*/
 IplImage* ImRead(char *fname){
   IplImage* img_out;
   FILE *fp;
@@ -113,12 +117,20 @@ void ImWrite(IplImage *img, char *fname){
   case 1:
   case 2:
     for(;i<(img->width*img->height);i++)
-      fprintf(fp, "%d ", img->imageData[i]);
+    {
+      if(i > 0 && i % img->width == 0)
+          fprintf(fp, "\n");
+      fprintf(fp, "%u ", (unsigned char)img->imageData[i]);
+    }
     fprintf(fp, "\b");
     break;
   case 3:
-     for(;i<(img->width*img->height*3);i++)
-      fprintf(fp, "%d ", img->imageData[i]);
+    for(;i<(img->width*img->height*3);i++)
+    {
+      if(i > 0 && i % img->width == 0)
+          fprintf(fp, "\n");
+      fprintf(fp, "%u ", (unsigned char)img->imageData[i]);
+    }
     fprintf(fp, "\b");
     break;
   case 4:
@@ -198,68 +210,29 @@ void ImInvert(IplImage *img){
   return;
 }
 
-void Support_FlipH(uchar *a){
-  uchar *a_out;
-  int i, j;
-  a_out = (uchar*)malloc(strlen(a));
-  for(i=(strlen(a)-1), j=0;i>=0, j<=(strlen(a)-1);i--, j++)
-    a_out[j] = a[i];
-  a = a_out;
-  free(a_out);
-}
-
-void ImFlipH(IplImage* img){
-  int i, x, j;
-  uchar *a;
-  switch(img->ID){
-  case 1:
-  case 2:
-  case 4:
-  case 5:
-    a = (char*)malloc(img->height);
-    for(i=1;i<=img->width;i++){
-      for(j=(img->height-1)*i, x=0;j<=((img->height-1)*(i+1));j++, x++)
-	a[x]=img->imageData[j];
-      Support_FlipH(a);
-      for(j=(img->height-1)*i, x=0;j<=((img->height-1)*(i+1));j++, x++)
-	img->imageData[j]=a[x];
-    } 
-    /*
-    for(i=1;i<=img->width;i++)
-      for(j=((img->height-1)*i), x=((img->height-1)*(i+1));j<=(((img->height-1)*(i+1)));j++, x--){
-	temp = img->imageData[j];
-	img->imageData[j]=img->imageData[x];
-	img->imageData[x] = temp;
-      }*/
-    break;
-  case 3:
-  case 6:
-    /*
-    for(i=1;i<=img->width;i++)
-      for(j=(((img->height-1)*3)*i), x=(((img->height-1)*3)*(i+1));j<=(((img->height-1)*(i+1))/2)*3;j++, x--){
-	temp = img->imageData[j];
-	img->imageData[j]=img->imageData[x];
-	img->imageData[x] = temp;
-      }
-    */
-    break;
-  }
-}
+/*_________________________________________
+::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::
+::::::::::NOVAS FUNÇÕES:::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::
+::::::::::::::::::::::::::::::::::::::::::::
+___________________________________________*/
 
 void ImFlipV(IplImage* img){
-  int i, j, x;
+  int i, j, p1, p2;
   uchar temp;
   switch(img->ID){
   case 1:
   case 2:
   case 4:
   case 5:
-    for(i=1;i<=(img->width/2);i++)
-      for(j=(img->height-1)*i, x=(img->height-1)*(img->width-i);
-	  j<=((img->height-1)*(i+1)); j++, x++){
-	temp = img->imageData[j];
-	img->imageData[j] = img->imageData[x];
-	img->imageData[x] = temp;
+     for(i=0;i<(img->width/2);i++)
+      for(j=0; j<(img->width); j++){
+        p1 = i * img->width + j;
+        p2 = (img->height - i - 1) * img->width + j;
+	temp = img->imageData[p1];
+	img->imageData[p1] = img->imageData[p2];
+	img->imageData[p2] = temp;
       }
     break;
   case 3:
@@ -268,6 +241,28 @@ void ImFlipV(IplImage* img){
   }
 }
 
+void ImFlipH(IplImage* img){
+  int p1, p2;
+  uchar temp;
+  switch(img->ID){
+  case 1:
+  case 2:
+  case 4:
+  case 5:
+    for(int i=0;i<(img->width);i++)
+      for(int j=0;j<(int)(img->height/2);j++){
+	p1 = (i*img->height -1) + j;
+	p2 = (i*img->height -1) + (img->height -j);
+	temp = img->imageData[p1];
+	img->imageData[p1] = img->imageData[p2];
+	img->imageData[p2] = temp;
+      }
+    break;
+  case 3:
+  case 6:
+    break;
+  }
+}
 
 int main(int argc, char *argv[]){
   printf("\n");
@@ -281,9 +276,9 @@ int main(int argc, char *argv[]){
     for(;c<argc;c++){
       if(strcmp(color, argv[c])==0)
 	ImInvert(img);
-      if(strcmp(fliph, argv[c])==0)
-	ImFlipH(img);
-      if(strcmp(argc[c], flipv)==0)
+       else if(strcmp(fliph, argv[c])==0)
+	 ImFlipH(img);
+      else if(strcmp(argv[c], flipv)==0)
 	ImFlipV(img);
     }
   }   
