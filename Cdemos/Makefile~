@@ -1,8 +1,3 @@
-all:
-	gcc -c image.c -o image.o -lm -I.. -std=gnu99
-	gcc fliph.c image.o -o ../bin/fliph.out -lm -I.. -std=gnu99
-	gcc flipv.c image.o -o ../bin/flipv.out -lm -I.. -std=gnu99
-	gcc invert.c image.o -o ../bin/invert.out -lm -I.. -std=gnu99
 image: image.c 
 	gcc -c image.c -o image.o -lm -I.. -std=gnu99
 fliph:

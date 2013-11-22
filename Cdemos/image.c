@@ -1,85 +1,69 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<opencv2/core/types_c.h>
-#include<math.h>
+#include "image.h"
 
-
-
-/*_____________________________________________________
-  ________________________________________________________*/
 IplImage* ImRead(char *fname){
-  IplImage* img_out;
-  FILE *fp;
-  int w, h, i=0, type;
-  if((fp = fopen(fname, "r")) == NULL){
-    printf("\Erro na Abertura do Arquivo");
-    return NULL;
-  }
-  fscanf(fp, "P%d", &type);
-
-  //check for comments if exist
-  //Ainda não suporta comentários...
-
-  fscanf(fp, "%d %d\n", &w, &h);
-  img_out = (IplImage*) malloc(sizeof(IplImage));
-  unsigned int b, data;
-  switch (type){
-  case 1:
-    img_out->imageData = (char*) malloc((1/8)*(w*h));
-    for(;i<w*h;++i){
-      fscanf(fp, "%d", &data);
-      img_out->imageData[i] = data;
-    }
-    break;
- case 2:
-   img_out->imageData = (char*) malloc(w*h);
-   img_out->nChannels = 1;
-   img_out->depth = IPL_DEPTH_8U;
-   fscanf(fp, "%d\n", &b);
-   for(;i<w*h;i++){
-     fscanf(fp, "%d", &data);
-     img_out->imageData[i]=data;
-   }
-   break;
-  case 3:
-    img_out->imageData = (char*) malloc(w*h*3);
-    img_out->nChannels = 3;
-    img_out->depth = IPL_DEPTH_8U;
-    fscanf(fp, "%d\n", &b);
-    for(;i<w*h*3;i++){
-      fscanf(fp, "%d", &data);
-      img_out->imageData[i]=data;
-    }
-    break;
-  case 4:
-    img_out->imageData = (char*) malloc((1/8)*(w*h));
-    fread(img_out->imageData, ((1/8)*(w*h)), 1, fp);
-    break;
-  case 5:
-    img_out->imageData=(char*) malloc(w*h);
-    img_out->nChannels=1;
-    img_out->depth=IPL_DEPTH_8U;
-    fscanf(fp, "%d\n", &b) ;
-    fread(img_out->imageData, w*h, 1, fp);
-    break;
-  case 6:
-    img_out->imageData = (char*) malloc(w*h*3);
-    img_out->nChannels = 3;
-    img_out->depth=IPL_DEPTH_8U;
-    fscanf(fp, "%d\n", &b);
-    fread(img_out->imageData, w*h*3, 1, fp);
-    break;
-  default:
-    printf("TIPO INVÁLIDO");
-    exit(0);
-    break;
-  }
-  img_out->ID = type;
-  img_out->width=w;
-  img_out->height=h;
-  fclose(fp);
-  return img_out;
+	IplImage* img = (IplImage*) malloc(sizeof(IplImage));
+	FILE* fp;
+	if((fp = fopen(fname, "r")) == NULL){
+		printf("Erro na Abertura do Arquivo!\n");
+		return NULL;
+	}
+	fscanf(fp, "P%d", &img->ID);
+	 //Comments Checkout
+	fscanf(fp, "%d %d\n", &img->width, &img->height);
+	uint btemp, dtemp; //Delete temp when make log operation  --amateur's things
+	switch(img->ID){
+	case 1:
+		img->imageData = (char*) malloc((1/8)*(img->width*img->height));
+		for(int i=0; i<img->width*img->height; i++){
+			fscanf(fp, "%d", &dtemp);
+			img->imageData[i] = dtemp;
+		}
+		break;
+	case 2:
+		img->imageData = (char*) malloc(img->width*img->height);
+		img->nChannels = 1;
+		img->depth = IPL_DEPTH_8U;
+		fscanf(fp, "%d\n", &btemp);
+		for(int i=0; i<img->width*img->height;i++){
+			fscanf(fp, "%d", &dtemp);
+			img->imageData[i] = dtemp;
+		}
+		break;
+	case 3:
+		img->imageData = (char*) malloc(img->width*img->height*3);
+		img->nChannels = 3;
+		img->depth = IPL_DEPTH_8U;
+		fscanf(fp, "%d\n", &btemp);
+		for(int i=0;i<img->width*img->height*3;i++){
+			fscanf(fp, "%d", &dtemp);
+			img->imageData[i] = dtemp;
+		}
+		break;
+	case 4:
+		img->imageData = (char*) malloc((1/8)*(img->width*img->height));
+		fread(img->imageData, ((1/8)*(img->width*img->height)), 1, fp);
+		break;
+	case 5:
+		img->imageData=(char*) malloc(img->width*img->height);
+		img->nChannels=1;
+		img->depth=IPL_DEPTH_8U;
+		fscanf(fp, "%d\n", &btemp);
+		fread(img->imageData, img->width*img->height, 1, fp);
+		break;
+	case 6:
+		img->imageData = (char*) malloc(img->width*img->height*3);
+		img->nChannels = 3;
+		img->depth=IPL_DEPTH_8U;
+		fscanf(fp, "%d\n", &btemp);
+		fread(img->imageData, img->width*img->height*3, 1, fp);
+		break;
+	default:
+		printf("TIPO INVÁLIDO\n");
+		exit(0);
+		break;
+	}
+	fclose(fp);
+	return img;
 }
 
 void ImWrite(IplImage *img, char *fname){
@@ -177,37 +161,26 @@ void ImPrintHeader(IplImage* img){
 }
 
 void ImInvert(IplImage *img){
-  int i=0;
-  switch (img->ID){
-  case 1:
-    for(;i<img->width*img->height;i++){
-      img->imageData[i]= 1 - img->imageData[i];
-    }
-    break;
-  case 2:
-    for(;i<img->width*img->height;i++){
-      img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
-    }
-    break;
-  case 3:
-    for(;i<img->width*img->height*3; i+=3){
-      img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
-    }
-    break;
-  case 4:
-  case 5:
-    for(;i<img->width*img->height;i++)
-      img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
-    break;
-  case 6:
-    for(;i<img->width*img->height*3;i++)
-      img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
-    break;
-  default:
-   printf("\nFormato de Imagem Invalido");
-   break;
-  }
-  return;
+	switch(img->ID){
+		case 1:
+		case 4:
+			for(int i=0; i<img->width*img->height; i++)
+				img->imageData[i] = 1 - img->imageData[i];
+			break;
+		case 2:
+		case 5:
+			for(int i=0;i<img->width*img->height;i++)
+				img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
+  			break;
+		case 3:
+			for(int i=0;i<img->width*img->height*3; i+=3)
+				img->imageData[i]=((int)(pow(2, img->depth)-1))-img->imageData[i];
+			break;
+		case 6:
+			for(int i=0;i<img->width*img->height*3;i++)
+				img->imageData[i]=(int)(pow(2, img->depth)-1)-(int)img->imageData[i];
+			break;
+	}
 }
 
 /*_________________________________________
@@ -264,6 +237,84 @@ void ImFlipH(IplImage* img){
   }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 int main(int argc, char *argv[]){
   printf("\n");
   IplImage *img;
@@ -286,3 +337,4 @@ int main(int argc, char *argv[]){
   printf("\nPrograma finalizado\n");
   return 0;
 }
+*/
