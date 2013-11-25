@@ -3,15 +3,15 @@ all:
 	gcc fliph.c image.o -o ../bin/fliph.out -lm -I.. -std=gnu99
 	gcc flipv.c image.o -o ../bin/flipv.out -lm -I.. -std=gnu99
 	gcc invert.c image.o -o ../bin/invert.out -lm -I.. -std=gnu99
-run image: image.c 
+image: image.c 
 	gcc -c image.c -o image.o -lm -I.. -std=gnu99
-run fliph:
+fliph:
 	gcc fliph.c image.o -o ../bin/fliph.out -lm -I.. -std=gnu99
-run flipv:
+flipv:
 	gcc flipv.c image.o -o ../bin/flipv.out -lm -I.. -std=gnu99
-run invert:
+invert:
 	gcc invert.c image.o -o ../bin/invert.out -lm -I.. -std=gnu99
-run all:
+all:
 	../bin/fliph.out ../images/barbara.pgm ../images_out/SFH_barbara.pgm
 	../bin/flipv.out ../images/barbara.pgm ../images_out/SFV_barbara.pgm
 	../bin/invert.out ../images/barbara.pgm ../images_out/SIn_barbara.pgm
