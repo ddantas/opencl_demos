@@ -11,12 +11,12 @@ flipv:
 	gcc ./Cdemos/flipv.c ./Cdemos/image.o -o ./bin/flipv.out -lm -I. -std=gnu99
 invert:
 	gcc ./Cdemos/invert.c ./Cdemos/image.o -o ./bin/invert.out -lm -I. -std=gnu99
-run flip h:
+runfliph:
 	./bin/fliph.out ./images/barbara.pgm ./images_out/SFH_barbara.pgm
 	display ./images_out/SFH_barbara.pgm
-run flip v:
+runflipv:
 	./bin/flipv.out ./images/barbara.pgm ./images_out/SFV_barbara.pgm
 	display ./images_out/SFV_barbara.pgm
-run invert c:
+runinvert:
 	./bin/invert.out ./images/barbara.pgm ./images_out/SIn_barbara.pgm
 	display ./images_out/SIn_barbara.pgm
