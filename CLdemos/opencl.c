@@ -204,7 +204,7 @@ int* takeInt(){
 	return b;
 }
 
-int* teste(int* b, int tam){
+void teste(char* b, int tam){
 	cl_platform_id platformId;
 	cl_device_id deviceId;
 	cl_context context;
@@ -213,14 +213,15 @@ int* teste(int* b, int tam){
 	cl_kernel kernel;
 	cl_mem bufB;
 	cl_mem bufC;
-	int* hostB;
-	int* hostC;
+	
+	char* hostC = (char*)malloc(tam*sizeof(char));
+	
 	size_t globalSize[1] = { tam };
-	int i;
+
 	const char* fonte =
 	"	__kernel void A( \
-	__global const int* b, \
-	__global int* c) \
+	__global const char* b, \
+	__global char* c) \
 	{ \
 		int id = get_global_id(0); \
 		c[id] = 255 - b[id]; \
@@ -251,19 +252,14 @@ int* teste(int* b, int tam){
 	printf("KERNEL    ");
 	cl_error(err);
 	
-	hostB = (int*) malloc(tam*sizeof(int));
-	hostC = (int*) malloc(tam*sizeof(int));
-	for (i = 0; i < 10; ++i)
-	{
-		hostB[i] = rand() % 101 - 50;
-	}
-	bufB = clCreateBuffer(context, CL_MEM_READ_ONLY, (tam*sizeof(int)), NULL, &err);
+	
+	bufB = clCreateBuffer(context, CL_MEM_READ_ONLY, (tam*sizeof(char)), NULL, &err);
 	printf("BUF B:     ");
 	cl_error(err);
-	bufC = clCreateBuffer(context, CL_MEM_READ_WRITE, (tam*sizeof(int)), NULL, &err);
+	bufC = clCreateBuffer(context, CL_MEM_READ_WRITE, (tam*sizeof(char)), NULL, &err);
 	printf("BUF C:     ");
 	cl_error(err);
-	clEnqueueWriteBuffer(queue, bufB, CL_TRUE, 0, tam*sizeof(int), hostB, 0, NULL, NULL);
+	clEnqueueWriteBuffer(queue, bufB, CL_TRUE, 0, tam*sizeof(char), b, 0, NULL, NULL);
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
 	
@@ -271,17 +267,19 @@ int* teste(int* b, int tam){
 	
 	clFinish(queue);
 	
-	clEnqueueReadBuffer(queue, bufC, CL_TRUE, 0, tam * sizeof(int), hostC, 0, NULL, NULL);
+	clEnqueueReadBuffer(queue, bufC, CL_TRUE, 0, tam*sizeof(char), hostC, 0, NULL, NULL);
+	printf("ENQUEUE BUFFER: ");
 	cl_error(err);
 	
+	for(int i=0; i<tam; i++)
+		b[i] = hostC[i];
+
 	clReleaseMemObject(bufB);
 	clReleaseMemObject(bufC);
 	clReleaseKernel(kernel);
 	clReleaseProgram(program);
 	clReleaseCommandQueue(queue);
 	clReleaseContext(context);
-	free(hostB);
-	return hostC;
 }
 /*
 int main(){

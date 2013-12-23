@@ -7,23 +7,25 @@
 int* transformInt(char* a, int tam){
 	int* b = malloc(sizeof(int)*tam);
 	for(int i=0; i<tam; i++){
-		printf(" b[%d] = %d\n", i, a[i]);
 		b[i] = (int)a[i];
 	}
 	return b;
 }
 void transformChar(int* a, char* b, int tam){
 	for(int i=0; i<tam;i++){
-		printf(" b[%d] = %d\n", i, a[i]);
 		b[i] = (char)a[i];
 	}
 }
 	
 int main(int argc, char** argv){
 	IplImage* img = ImRead(argv[1]);
-	int* aux = transformInt(img->imageData, (img->height*img->width));
-	aux = teste(aux, (img->height*img->width));
-	transformChar(aux, img->imageData, (img->height*img->width));
+	int tam = img->width*img->height;
+	char* imageData = (char*)malloc(tam*sizeof(char));
+	for(int i=0; i<tam; i++)
+		imageData[i] = img->imageData[i];
+	teste(imageData, tam);
+	for(int i=0; i<tam; i++)
+		img->imageData[i] = imageData[i];
 	ImWrite(img, argv[2]);
 	return 0;
 }
