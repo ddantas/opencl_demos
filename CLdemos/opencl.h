@@ -1,1 +1,1 @@
-int* teste(int* b, int tam);
+void teste(char* b, int tam);
