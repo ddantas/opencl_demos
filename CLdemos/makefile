@@ -1,3 +1,3 @@
 all:
-	gcc -c Invert.c -I. -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86 -lOpenCL -o invert.o -std=gnu99
-	gcc -I. -I.. -I../Cdemos -I/opt/AMDAPP/include CLinvert.c ../Cdemos/image.o invert.o -L/opt/AMDAPP/lib/x86 -lOpenCL -o clinvert -lm -std=gnu99
+	gcc -c opencl.c -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86 -lOpenCL -o opencl.o -std=gnu99
+	gcc clinvert.c -I../Cdemos/ ../Cdemos/image.o -I./ ./opencl.o -I../ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86 -lOpenCL -lm -std=gnu99 -o saida
