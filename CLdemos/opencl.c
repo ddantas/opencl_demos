@@ -5,7 +5,6 @@
 #else
 #include <CL/opencl.h>
 #endif
-#define ARRAY_LENGTH 10
 
 void cl_error(int error){
 	switch(error){
@@ -204,7 +203,7 @@ int* takeInt(){
 	return b;
 }
 
-void teste(char* b, int tam){
+void cl_ImInvert(char* b, int tam){
 	cl_platform_id platformId;
 	cl_device_id deviceId;
 	cl_context context;
@@ -214,6 +213,10 @@ void teste(char* b, int tam){
 	cl_mem bufB;
 	cl_mem bufC;
 	
+	cl_int err, num;
+	char* info;
+	int* size = (int*) malloc(sizeof(int));
+		
 	char* hostC = (char*)malloc(tam*sizeof(char));
 	
 	size_t globalSize[1] = { tam };
@@ -227,10 +230,63 @@ void teste(char* b, int tam){
 		c[id] = 255 - b[id]; \
 	}";
 	
-	cl_int err;
 	
-	clGetPlatformIDs(1, &platformId, NULL);
-	clGetDeviceIDs(platformId, CL_DEVICE_TYPE_CPU, 1, &deviceId, NULL);
+	err = clGetPlatformIDs(5, NULL, &num);
+	printf("TESTE DE PLATFORM... ");
+	cl_error(err);
+	if(err == 0){
+		err = clGetPlatformIDs(num, &platformId, NULL);
+		printf("Definindo platform... ");
+		cl_error(err);
+		printf("Exibir Informacao da Plataforma: \n");
+		printf("**Nome da Plataforma: ");
+		clGetPlatformInfo(platformId, CL_PLATFORM_NAME, 0, NULL, size);
+		info = (char*) malloc(size[0]*sizeof(char));
+		clGetPlatformInfo(platformId, CL_PLATFORM_NAME, size[0], info, NULL);
+		printf("%s\n", info);
+		free(info);
+	}
+	else{
+		cl_error(err);
+		//exit() aqui é para descobrir porque o exit() nao funciona
+	}
+		 
+	
+	printf("TESTE DE DISPOSITIVOS\n");
+	err = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_GPU, 5, NULL, &num);
+	if(err != 0){
+		printf("Nenhuma GPU encontrada... \n");
+		err = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_CPU, 5, NULL, &num);
+		if(err != 0)
+			printf("Nenhuma CPU encontrada...\n");
+		/* Se aparecer a mensagem acima (NAO, O SEU COMPUTADOR NAO FUNCIONA POR MAGIA),
+		 * A plataforma que usamos é da AMD como teoricamente foi mostrado antes,
+		 * Porém se vc usa uma CPU de uma marca diferente, como a Intel
+		 * por exemplo, a funcao acima nao vai encontrar sua CPU
+		 * A explicacao é que, segundo o livro OpenCL In Action,
+		 * uma Plataforma só aceita um Dispositivo válido, se usamos uma
+		 * plataforma da AMD, uma CPU AMD seria válida e reconhecida
+		 * porém, teoricamente ela nao poderia usar um dispositivo Intel,
+		 * Mas na prática, apesar de nao "reconhecer" a CPU, a platform
+		 * a considera válida e o código segue funcionando...
+		 * Nao descobri porque ainda... '-'
+		*/
+		err = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_CPU, num, &deviceId, NULL);
+		printf("DEVICE: ");
+		cl_error(err);
+	}else{
+		err = clGetDeviceIDs(platformId, CL_DEVICE_TYPE_GPU, num, &deviceId, NULL);
+		printf("DEVICE: ");
+		cl_error(err);
+	}
+	if(err == 0){
+		printf("Informacoes do Dispositivo:\n");
+		clGetDeviceInfo(deviceId, CL_DEVICE_NAME, 0, NULL, size);
+		info = (char*) malloc(size[0]*sizeof(char));
+		clGetDeviceInfo(deviceId, CL_DEVICE_NAME, (sizeof(char)*size[0]), info, NULL);
+		printf("**Nome do Dispositivo: %s\n", info);
+		free(info);
+	}
 	
 	context = clCreateContext(0, 1, &deviceId, NULL, NULL, &err);
 	printf("CONTEXT: ");
