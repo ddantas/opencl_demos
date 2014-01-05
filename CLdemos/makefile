@@ -7,3 +7,5 @@ clear:
 	rm ./saida.pgm
 	rm *.o
 	rm saida
+
+
