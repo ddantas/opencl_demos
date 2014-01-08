@@ -6,8 +6,7 @@
 
 int main(int argc, char** argv){
 	IplImage* img = ImRead(argv[1]);
-	int tam = img->width*img->height;
-	cl_ImInvert(img->imageData, tam);
+	cl_ImInvert(img);
 	ImWrite(img, argv[2]);
 	return 0;
 }

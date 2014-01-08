@@ -1,1 +1,1 @@
-void cl_ImInvert(char* b, int tam);
+void cl_ImInvert(IplImage*);

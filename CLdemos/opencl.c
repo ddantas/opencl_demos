@@ -5,10 +5,11 @@
 #else
 #include <CL/opencl.h>
 #endif
+#include <opencv2/core/types_c.h>
 
 void cl_error(int error);
 
-void cl_ImInvert(char* b, int tam){
+void cl_ImInvert(IplImage* img){
 	cl_platform_id platformId;
 	cl_device_id deviceId;
 	cl_context context;
@@ -17,6 +18,7 @@ void cl_ImInvert(char* b, int tam){
 	cl_kernel kernel;
 	cl_mem bufB;
 	cl_mem bufC;
+	int tam = img->width*img->height;
 	
 	cl_int err, num;
 	char* info;
@@ -108,7 +110,7 @@ void cl_ImInvert(char* b, int tam){
 	bufC = clCreateBuffer(context, CL_MEM_READ_WRITE, (tam*sizeof(char)), NULL, &err);
 	printf("BUF C:     ");
 	cl_error(err);
-	clEnqueueWriteBuffer(queue, bufB, CL_TRUE, 0, tam*sizeof(char), b, 0, NULL, NULL);
+	clEnqueueWriteBuffer(queue, bufB, CL_TRUE, 0, tam*sizeof(char), img->imageData, 0, NULL, NULL);
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
 	
@@ -121,7 +123,7 @@ void cl_ImInvert(char* b, int tam){
 	cl_error(err);
 	
 	for(int i=0; i<tam; i++)
-		b[i] = hostC[i];
+		img->imageData[i] = hostC[i];
 
 	clReleaseMemObject(bufB);
 	clReleaseMemObject(bufC);
@@ -130,12 +132,6 @@ void cl_ImInvert(char* b, int tam){
 	clReleaseCommandQueue(queue);
 	clReleaseContext(context);
 }
-
-
-
-
-
-
 
 void cl_error(int error){
 	switch(error){
