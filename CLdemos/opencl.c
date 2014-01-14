@@ -8,6 +8,141 @@
 #include <opencv2/core/types_c.h>
 
 void cl_error(int error);
+void cl_ImInvert(IplImage* img);
+
+void cl_ImThreshould(IplImage* img, char a){
+	cl_uint num_opencl;
+	cl_int err;
+	size_t t_info;
+	cl_char* info;
+	
+	/*PLATFORM STAGE*/
+	cl_platform_id *plataforma;
+	clGetPlatformIDs(3, NULL, &num_opencl);
+	plataforma = (cl_platform_id*)malloc(sizeof(cl_platform_id)*
+											num_opencl);										
+	err = clGetPlatformIDs(num_opencl, plataforma, NULL);
+	printf("PLATFORM STATUS: "); cl_error(err);
+	if(err<0)
+		return;
+	for(int i=0; i< num_opencl; i++){
+		clGetPlatformInfo(plataforma[i], CL_PLATFORM_NAME, 0,
+								NULL, &t_info);
+		info = (cl_char*)malloc(sizeof(cl_char)*t_info);
+		clGetPlatformInfo(plataforma[i], CL_PLATFORM_NAME, t_info,
+								info, NULL);
+		printf("PLATFORM NAME %s\n", info);
+	}
+	//SE HOUVER UM NUMERO DE PLATAFORMAS MAIOR QUE UM O USUARIO DEVE
+	//ESCOLHER QUAL QUER UTILIZAR, POR PADRÂO USAREMOS A 1º ENCONTRADA
+	t_info=0;
+	free(info);
+	err=0;
+	num_opencl=0;
+	/*END OF PLATFORM STAGE*/
+	
+	/*DEVICE STAGE*/
+	cl_device_id *device;
+	clGetDeviceIDs(plataforma[0], CL_DEVICE_TYPE_GPU, 3, NULL, &num_opencl);
+	if(num_opencl<=0){
+		clGetDeviceIDs(plataforma[0], CL_DEVICE_TYPE_CPU, 3, NULL, &num_opencl);
+		device = (cl_device_id*)malloc(sizeof(cl_device_id)*num_opencl);
+		err = clGetDeviceIDs(plataforma[0], CL_DEVICE_TYPE_CPU, num_opencl, device, NULL);
+		printf("DEVICE STATUS: "); cl_error(err);
+		if(cl_error<=0)
+			return;
+	}else{
+		clGetDeviceIDs(plataforma[0], CL_DEVICE_TYPE_GPU, 3, NULL, &num_opencl);
+		device = (cl_device_id*)malloc(sizeof(cl_device_id)*num_opencl);
+		err = clGetDeviceIDs(plataforma[0], CL_DEVICE_TYPE_GPU, num_opencl, device, NULL);
+		printf("DEVICE STATUS: "); cl_error(err);
+		if(cl_error<=0)
+			return;
+	}
+	for(int i=0; i< num_opencl; i++){
+		clGetDeviceInfo(device[i], CL_DEVICE_NAME, 0,
+								NULL, &t_info);
+		info = (cl_char*)malloc(sizeof(cl_char)*t_info);
+		clGetDeviceInfo(device[i], CL_DEVICE_NAME, t_info,
+								info, NULL);
+		printf("DEVICE NAME %s\n", info);
+	}
+	/*END DEVICE STAGE*/
+	/*CONTEXT STAGE*/
+	cl_context context = clCreateContext(0, num_opencl, device, NULL,
+						NULL, &err);
+	printf("CONTEXT STATUS: "); cl_error(err);
+	if(err<=0)
+		return;
+	/*END CONTEXT STAGE*/
+	/*PROGRAMS STAGE*/
+	FILE* program_handle = fopen("./CL/threshold.cl", "r");
+	fseek(program_handle, 0, SEEK_END);
+	size_t program_size = ftell(program_handle);
+	rewind(program_handle);
+	
+	char* program_buffer = (char*)malloc(program_size+1);
+	program_buffer[program_size] = '\0';
+	fread(program_buffer, sizeof(char), program_size, program_handle);
+	fclose(program_handle);
+	
+	cl_program program = clCreateProgramWithSource(context, 1,
+						 (const char**)program_buffer,
+						 (const size_t*)program_size, &err);
+	printf("PROGRAM STATUS "); cl_error(err);
+	char result[1024];
+	clBuildProgram(program, num_opencl, device, NULL, NULL, result);
+	printf("RESULTS OF BUILDING:\n%s\n", result);
+	/*END PROGRAM STAGE*/
+	/*KERNEL STAGE*/
+	const char kernel_name[] = "threshold";
+	cl_kernel kernel = clCreateKernel(program[0], program_buffer, kernel_name, &err);
+	printf("KERNEL STATUS: "); cl_error(err);
+	/*END KERNEL STAGE*/
+	/*COMMAND QUEUE STAGE*/
+	cl_mem bufA;
+	cl_mem bufB;
+	
+	cl_command_queue queue = clCreateCommandQueue(context, device[0], 0, &err);
+	printf("QUEUE STATUS:   "); cl_error(err);	
+	
+	bufA = clCreateBuffer(context, CL_MEM_READ_WRITE,
+			(sizeof(char)*(img->width*img->height)), NULL, &err);
+	printf("BUF A:     "); cl_error(err);
+	bufB = clCreateBuffer(context, CL_MEM_READ_ONLY,
+			(sizeof(char)), NULL, &err);
+	printf("BUF B:     "); cl_error(err);
+	
+	clEnqueueWriteBuffer(queue, bufA, CL_TRUE, 0,
+	(sizeof(char)*(img->width*img->height)), img->imageData,
+	0, NULL, NULL);
+	
+	clEnqueueWriteBuffer(queue, bufB, CL_TRUE, 0,
+	sizeof(char), &a, 0, NULL, NULL);
+	
+	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufA);
+	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufB);
+	size_t sizeofprogram = {sizeof(char)*img->width*img->height};
+	clEnqueueNDRangeKernel(queue, kernel, 1, NULL, 
+						sizeofprogram, NULL, 0, NULL, NULL);
+	
+	clFinish(queue);
+	
+	clEnqueueReadBuffer(queue, bufC, CL_TRUE, 0,
+	(sizeof(char)*(img->width*img->height)),
+	img->imageData, 0, NULL, NULL);
+	printf("ENQUEUE BUFFER: ");
+	cl_error(err);
+	
+	clReleaseMemObject(bufA);
+	clReleaseMemObject(bufB);
+	clReleaseKernel(kernel);
+	clReleaseProgram(program);
+	clReleaseCommandQueue(queue);
+	clReleaseContext(context);
+	
+}
+	
 
 void cl_ImInvert(IplImage* img){
 	cl_platform_id platformId;

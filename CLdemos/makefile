@@ -5,8 +5,8 @@ run:
 	./saida ../images/barbara.pgm ./saida.pgm
 	display saida.pgm &
 clean:
-	rm ./saida.pgm
 	rm *.o
 	rm saida
+	rm ./saida.pgm
 
 
