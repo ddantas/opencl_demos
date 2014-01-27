@@ -272,163 +272,86 @@ void ImFlipH(IplImage* img){
 	}
 }
 
-void ImThreshold(IplImage* img, char t){
+void ImThreshold(IplImage* img, unsigned char t){
 	for(int i=0; i<(img->width*img->height);i++){
-		if(img->imageData[i] >= t)
+		if((unsigned char)img->imageData[i] >= t)
 			img->imageData[i] = 255;
 		else
 			img->imageData[i] = 0;
 	}
 }
-		
-void ImFilMed(IplImage* img){
-	int value;
-	for(int i=1; i<(img->width-1);i++)
-		for(int j=1; j<(img->height-1); j++){
-			value = (
-				(img->imageData[getPos(img, i-1, j-1)]) +
-				(img->imageData[getPos(img, i-1, j)])   +
-				(img->imageData[getPos(img, i-1, j+1)]) +
-				(img->imageData[getPos(img, i, j-1)])   +
-				(img->imageData[getPos(img, i, j)])     +
-				(img->imageData[getPos(img, i, j+1)])   +
-				(img->imageData[getPos(img, i+1, j-1)]) +
-				(img->imageData[getPos(img, i+1, j)])   +
-				(img->imageData[getPos(img, i+1, j+1)])
-			)/9;
-			img->imageData[getPos(img, i, j)]= (char)value;
-		}
-}
 
-void ImBlur(IplImage* img){
-	int value;
-	for(int i=1; i<(img->width-1);i++)
-		for(int j=1; j<(img->height-1); j++){
-			value = (
-				(img->imageData[getPos(img, i-1, j-1)]) +
-				(2*(img->imageData[getPos(img, i-1, j)]))+
-				(img->imageData[getPos(img, i-1, j+1)]) +
-				(2*(img->imageData[getPos(img, i, j-1)]))+
-				(4*(img->imageData[getPos(img, i, j)])) +
-				(2*(img->imageData[getPos(img, i, j+1)]))+
-				(img->imageData[getPos(img, i+1, j-1)]) +
-				(2*(img->imageData[getPos(img, i+1, j)]))+
-				(img->imageData[getPos(img, i+1, j+1)])
-			)/16;
-			img->imageData[getPos(img, i, j)]= (char)value;
+void ImFilMed(IplImage* img){
+	unsigned char* data=(unsigned char*)malloc(sizeof(char)*
+							   img->width*img->height);
+	for(int i=0; i<(img->width*img->height);i++)
+		data[i] = img->imageData[i];
+	unsigned char value;
+	for(register int i=1; i<(img->width-1); i++)
+		for(register int j=1; j<(img->height-1); j++){
+			value = 
+			(
+				(data[getPos(img, i-1, j-1)]/9) +
+				(data[getPos(img, i-1, j  )]/9) +
+				(data[getPos(img, i-1, j+1)]/9) +
+				(data[getPos(img, i  , j-1)]/9) +
+				(data[getPos(img, i  , j  )]/9) +
+				(data[getPos(img, i  , j+1)]/9) +
+				(data[getPos(img, i+1, j-1)]/9) +
+				(data[getPos(img, i+1, j  )]/9) +
+				(data[getPos(img, i+1, j+1)]/9)
+			);
+			img->imageData[getPos(img, i, j)] = value;
 		}
+	free(data);
+}
+				
+void ImBlur(IplImage* img){
+	unsigned char* data=(unsigned char*)malloc(sizeof(char)*
+							   img->width*img->height);
+	for(int i=0; i<(img->width*img->height);i++)
+		data[i] = img->imageData[i];
+	unsigned char value;
+	for(register int i=1; i<(img->width-1); i++)
+		for(register int j=1; j<(img->height-1); j++){
+			value = 
+			(
+				((data[getPos(img, i-1, j-1)]*1)/16) +
+				((data[getPos(img, i-1, j  )]*2)/16) +
+				((data[getPos(img, i-1, j+1)]*1)/16) +
+				((data[getPos(img, i  , j-1)]*2)/16) +
+				((data[getPos(img, i  , j  )]*4)/16) +
+				((data[getPos(img, i  , j+1)]*2)/16) +
+				((data[getPos(img, i+1, j-1)]*1)/16) +
+				((data[getPos(img, i+1, j  )]*2)/16) +
+				((data[getPos(img, i+1, j+1)]*1)/16)
+			);
+			img->imageData[getPos(img, i, j)] = value;
+		}
+	free(data);
 }
 
 void ImLaplac(IplImage* img){
+	unsigned char* data=(unsigned char*)malloc(sizeof(char)*
+							   img->width*img->height);
+	for(int i=0; i<(img->width*img->height);i++)
+		data[i] = img->imageData[i];
 	int value;
-	for(int i=1; i<(img->width-1);i++)
-		for(int j=1; j<(img->height-1); j++){
-			value = (
-				(img->imageData[getPos(img, i-1, j-1)]) +
-				(img->imageData[getPos(img, i-1, j)]-1)   +
-				(img->imageData[getPos(img, i-1, j+1)]) +
-				(img->imageData[getPos(img, i, j-1)]-1)   +
-				(img->imageData[getPos(img, i, j)]*5)     +
-				(img->imageData[getPos(img, i, j+1)]-1)   +
-				(img->imageData[getPos(img, i+1, j-1)]) +
-				(img->imageData[getPos(img, i+1, j)]-1)   +
-				(img->imageData[getPos(img, i+1, j+1)])
+	for(register int i=1; i<(img->width-1); i++)
+		for(register int j=1; j<(img->height-1); j++){
+			value = 
+			(
+				((data[getPos(img, i-1, j-1)]*0)) +
+				((data[getPos(img, i-1, j  )]*(-1))) +
+				((data[getPos(img, i-1, j+1)]*0)) +
+				((data[getPos(img, i  , j-1)]*(-1))) +
+				((data[getPos(img, i  , j  )]*4)) +
+				((data[getPos(img, i  , j+1)]*(-1))) +
+				((data[getPos(img, i+1, j-1)]*0)) +
+				((data[getPos(img, i+1, j  )]*(-1))) +
+				((data[getPos(img, i+1, j+1)]*0))
 			);
-			img->imageData[getPos(img, i, j)]= (char)value;
+			img->imageData[getPos(img, i, j)] = (unsigned char)abs(value);
 		}
+	free(data);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-int main(int argc, char *argv[]){
-  printf("\n");
-  IplImage *img;
-  img = ImRead(argv[1]); //argv[1] pega o nome de entrada da imagem
-  if(argc > 3){
-    int c=3;
-    char color[9]="-icolor\0";
-    char fliph[8]="-fliph\0";
-    char flipv[9]="-flipv\0";
-    for(;c<argc;c++){
-      if(strcmp(color, argv[c])==0)
-	ImInvert(img);
-       else if(strcmp(fliph, argv[c])==0)
-	 ImFlipH(img);
-      else if(strcmp(argv[c], flipv)==0)
-	ImFlipV(img);
-    }
-  }   
-  ImWrite(img, argv[2]); //argv[2] pega o nome de saída da imagem
-  printf("\nPrograma finalizado\n");
-  return 0;
-}
-*/
