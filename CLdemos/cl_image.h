@@ -14,6 +14,8 @@ typedef struct CL {
 	cl_command_queue queue;
 } CL;
 
+const char** getKernelPtr(const char*);
+
 void StartPlatform(CL*);
 void StartDevice(CL*);
 void StartContext(CL*);
