@@ -23,10 +23,26 @@ const char** getKernelPtr(const char* name){
 
 void cl_error(int error);
 
+void cl_ImInvert2(CL* cl, IplImage* img){
+	cl_program program;
+	cl_kernel kernel;
+	cl_int err;
+	
+	cl_mem mobj_A = NULL;
+	
+	cl_image_format format;
+	format.image_channel_order = CL_A;
+	format.image_channel_data_type = CL_UNORM_INT8;
+
+	mobj_A = clCreateImage2D(cl->context, CL_MEM_READ_ONLY, &format, img->width, img->height, NULL, NULL, &err);
+	printf("IMAGE STATUS: ");
+	cl_error(err);
+}
+
 void cl_ImThreshold(CL* cl, IplImage* img, unsigned char thre){
 	cl_program program;
 	cl_kernel kernel;
-	cl_mem bufA;
+	//cl_mem bufA;
 	cl_mem bufB;
 	cl_mem bufC;
 	cl_int err;
@@ -36,7 +52,8 @@ void cl_ImThreshold(CL* cl, IplImage* img, unsigned char thre){
 	
 	size_t globalSize[1] = { tam };
 	
-	const char* k = "./CL/Threshold.cl";
+	//const char* k = "./CL/Threshold.cl";
+	const char* k = "./CLdemos/CL/Threshold.cl";
 	const char** fonte = getKernelPtr(k);
 	
 	program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
@@ -55,9 +72,9 @@ void cl_ImThreshold(CL* cl, IplImage* img, unsigned char thre){
 	printf("BUF C STATUS: "); cl_error(err);
 	//clEnqueueWriteBuffer(cl->queue, bufA, CL_TRUE, 0, sizeof(char), &thre, 0, NULL, NULL);
 	clEnqueueWriteBuffer(cl->queue, bufB, CL_TRUE, 0, tam*sizeof(char), img->imageData, 0, NULL, NULL);
-	//clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufA);
-	//clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufB);
-	//clSetKernelArg(kernel, 2, sizeof(cl_mem), &bufC);
+	//clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
+	//clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
+	//clSetKernelArg(kernel, 2, sizeof(cl_mem), &bufA);
 	
 	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
 	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
@@ -90,7 +107,8 @@ void cl_ImInvert(CL* cl, IplImage* img){
 	
 	size_t globalSize[1] = { tam };
 	
-	const char* k = "./CL/Invert.cl";
+	//const char* k = "./CL/Invert.cl";
+	const char* k = "./CLdemos/CL/Invert.cl";
 	const char** fonte = getKernelPtr(k);
 	
 	program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
@@ -196,86 +214,8 @@ void StartCL(CL* cl){
 	StartDevice(cl);
 	StartContext(cl);
 }
-/*
-void getClBase(clBase* cl){
-	//BASIC
-	cl_int err, num;
-	char* info;
-	size_t size;
-	int p;
-	//PLATFORM STAGE
-	cl_platform_id* platform;
-	err = clGetPlatformIDs(5, NULL, &num);
-	if(err==0){
-		err = clGetPlatformIDs(num, platform, NULL);
-		printf("PLATFORM STATUS: "); cl_error(err);
-		if((err==0) && (num>1)){
-			printf("MAIS DE UMA PLATAFORMA FOI ENCONTRADA\n");
-			for(int i=0;i<num;i++){
-				clGetPlatformInfo(platform[i], CL_PLATFORM_NAME, 0,
-								  NULL, &size);
-				info=(char*)malloc(size*sizeof(char));
-				clGetPlatformInfo(platform[i], CL_PLATFORM_NAME,
-								  size, info, NULL);
-				printf("%d. %s\n", i, info);
-				free(info);
-			}
-			printf("Escolha uma plataforma: ");
-			do
-				scanf("%d", &p);
-			while((p<1)||(p>num));
-			for(int i=0;i<num;i++)
-				if(i!=p)
-					free(&platform[i]);
-		}else{
-			p=0;
-			clGetPlatformInfo(platform[p], CL_PLATFORM_NAME, 0,
-							  NULL, &size);
-			info=(char*)malloc(size*sizeof(char));
-			clGetPlatformInfo(platform[p], CL_PLATFORM_NAME,
-							  size, info, NULL);
-			printf("1. %s\n", info);
-			free(info);	
-		}
-		cl->platform=(cl_platform_id*)malloc(sizeof(cl_platform_id));
-		cl->platform=&platform[p];
-	}
-	
-	//DEVICE STAGE
-	err=clGetDeviceIDs(cl->platform[0], CL_DEVICE_TYPE_GPU, 5, NULL, &num);
-	if(err !=  0){
-		printf("Nenhum Dispositivo GPU foi encontrado\n");
-		err=clGetDeviceIDs(cl->platform[0], CL_DEVICE_TYPE_CPU, 5, NULL, &num);
-		cl_error(err);
-		err=clGetDeviceIDs(cl->platform[0], CL_DEVICE_TYPE_CPU, num,
-							cl->device, NULL);
-		printf("DEVICE STATUS: "); cl_error(err);
-	} else {
-		err=clGetDeviceIDs(cl->platform[0], CL_DEVICE_TYPE_GPU, num,
-							cl->device, NULL);
-		printf("DEVICE STATUS: "); cl_error(err);
-	}
-	if(err==1){
-		printf("Dispositivos Em Uso:\n");
-		for(int i=0; i<num; i++){
-			clGetDeviceInfo(cl->device[i], CL_DEVICE_NAME, 0, NULL, &size);
-			info=(char*)malloc(size*sizeof(char));
-			clGetDeviceInfo(cl->device[i], CL_DEVICE_NAME, size*sizeof(char),
-							info, NULL);
-			printf("%d. %s\n", i, info);
-			free(info);
-		}
-	}
-	//CONTEXT STAGE
-	
-}
 
-int main(){
-	clBase* cl=(clBase*)malloc(sizeof(clBase));
-	getClBase(cl);
-	return 0;
-}
-*/	
+
 void cl_error(int error){
 	switch(error){
 		case 0:
