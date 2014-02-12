@@ -24,3 +24,9 @@ void ReleaseCL(CL*);
 void StartCL(CL*);
 void cl_ImInvert(CL*, IplImage*);
 void cl_ImThreshold(CL*, IplImage*, unsigned char);
+
+
+void cl_ImInvert2(CL*, IplImage*);
+
+
+
