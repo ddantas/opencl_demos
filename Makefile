@@ -12,9 +12,9 @@ all:
 	gcc -c ./CLdemos/cl_image.c ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./CLdemos/cl_image.o
 	gcc ./CLdemos/main.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./bin/opencl
 	gcc ./CLdemos/clInvert.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./bin/clInvert
-	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./CLdemos/clInvert2
+	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./bin/clInvert2
 clInvert2:
-	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./CLdemos/clInvert2
+	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o -I./Cdemos/ -I./CLdemos/ -I./ -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -lm -std=gnu99 -o ./bin/clInvert2
 image: image.c
 	gcc -c ./Cdemos/image.c -o ./Cdemos/image.o -lm -I. -std=gnu99
 fliph:
@@ -47,7 +47,9 @@ run_all:
 	./bin/laplac.out ./images/barbara.pgm ./images_out/LAP_barbara.pgm
 	display ./images_out/LAP_barbara.pgm 
 	./bin/clInvert ./images/barbara.pgm ./images_out/CL_SIn_barbara.pgm
-	display ./images_out/CL_SIn_barbara.pgm 
+	display ./images_out/CL_SIn_barbara.pgm
+	./bin/clInvert2 ./images/barbara.pgm ./images_out/CL_SIn2_barbara.pgm
+	display ./images_out/CL_SIn2_barbara.pgm
 run_fliph:
 	./bin/fliph.out ./images/barbara.pgm ./images_out/SFH_barbara.pgm
 	display ./images_out/SFH_barbara.pgm &
@@ -73,12 +75,8 @@ run_clInvert:
 	./bin/clInvert ./images/barbara.pgm ./images_out/CL_SIn_barbara.pgm
 	display ./images_out/CL_SIn_barbara.pgm &
 run_clInvert2:
-	./CLdemos/clInvert2 ./images/barbara.pgm ./CLdemos/saida.pgm
-	display ./CLdemos/saida.pgm
-run_opencl:
-	./bin/opencl ./images/barbara.pgm ./images_out/saida.pgm ./images_out/saida2.pgm
-	display ./images_out/saida.pgm &
-	display ./images_out/saida2.pgm &
+	./bin/clInvert2 ./images/barbara.pgm ./images_out/CL_SIn2_barbara.pgm
+	display ./images_out/CL_SIn2_barbara.pgm &
 clean_all:
 	rm ./CLdemos/*.o
 	rm ./bin/*
