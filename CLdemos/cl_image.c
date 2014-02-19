@@ -45,26 +45,10 @@ cl_image_desc getDesc(CL* cl, IplImage* img){
     return image_d;
 }
 
-cl_image_desc getVoidDesc(CL* cl, IplImage* img){
-	cl_int err;
-	cl_image_desc image_d;
-	image_d.image_type = CL_MEM_OBJECT_IMAGE2D;
-	image_d.image_width = (size_t)img->width;
-	image_d.image_height = (size_t)img->height;
-	image_d.image_depth = (size_t)img->depth;
-	image_d.image_array_size = (size_t)(img->width*img->height);
-    image_d.image_row_pitch = (size_t)img->width;
-    image_d.image_slice_pitch = image_d.image_array_size;
-    image_d.num_mip_levels = 0;
-    image_d.num_samples = 0;
-    image_d.buffer = 0;
-    
-    return image_d;
-}
 void cl_ImInvert2(CL* cl, IplImage* img){
 	cl_int err;
     cl_image_desc desc = getDesc(cl, img);
-    cl_image_desc descOut = getVoidDesc(cl, img);
+    cl_image_desc descOut = getDesc(cl, img);
     
     cl_image_format src;
     cl_image_format out;
@@ -120,14 +104,14 @@ void cl_ImInvert2(CL* cl, IplImage* img){
 	err = clSetKernelArg( kernel, 1, sizeof( cl_mem ), (void *) &out_mem);
 	printf("SET 2 KERNEL ARG "); cl_error(err);
 
-	size_t worksize[] = { img->width, img->height};
+	size_t worksize[] = { img->width, img->height, 1};
 	err = clEnqueueNDRangeKernel(cl->queue, kernel, 2, NULL, worksize,
 	0, 0, 0, 0);
 	printf("ENQUEUE ND KERNEL STATUS "); cl_error(err);
 	
 	clFinish(cl->queue);
 	
-	char* auxout = (char*)malloc(img->width*img->height);
+	char* auxout = (char*)malloc(img->width*img->height*3);
 	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, 
 	src_origin, src_region, 0, 0, auxout, 0, NULL, NULL);
 	printf("READ NEW IMAGE STATUS "); cl_error(err);
