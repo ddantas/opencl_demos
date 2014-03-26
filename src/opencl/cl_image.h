@@ -20,3 +20,4 @@ void startCL(CL *);
 void releaseCL(CL *);
 void cl_invert(CL *, IplImage *);
 void cl_threshold(CL *, IplImage *, unsigned char n);
+void cl_invert_2d(CL *, IplImage *);
