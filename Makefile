@@ -11,10 +11,9 @@ all:
 	gcc -I. -lm -std=gnu99 -o bin/c/threshold src/c/image.o src/c/threshold.c
 	
 	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ --std=gnu99 -o bin/opencl/arraysum src/opencl/arraysum.c -lOpenCL
-	
 	gcc -c -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 ./src/opencl/cl_image.c ./src/c/image.o -o ./src/opencl/cl_image.o -lOpenCL
-	#gcc -c ./src/opencl/cl_image.c ./src/c/image.o -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -lOpenCL -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./src/opencl/cl_image.o
 	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./bin/opencl/invertcl ./src/c/image.o ./src/opencl/cl_image.o ./src/opencl/cl_invert.c -lOpenCL
+	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./bin/opencl/thresholdcl ./src/c/image.o ./src/opencl/cl_image.o ./src/opencl/cl_threshold.c -lOpenCL
 	
 
 show:
@@ -26,8 +25,8 @@ invert:
 	display ./output/inv_P5.pgm &
 	
 threshold:
-	./bin/c/threshold ./images/P5.pgm ./output/thr_P5.pgm
-	display ./output/thr_P5.pgm &
+	./bin/c/threshold ./images/P5.pgm ./output/thd_P5.pgm
+	display ./output/thd_P5.pgm &
 	
 media:
 	./bin/c/media ./images/P5.pgm ./output/med_P5.pgm
@@ -55,6 +54,10 @@ arraysum:
 invertcl:
 	./bin/opencl/invertcl ./images/P5.pgm ./output/cl_inv_P5.pgm
 	display ./output/cl_inv_P5.pgm
+	
+thresholdcl:
+	./bin/opencl/thresholdcl ./images/P5.pgm ./output/cl_thd_P5.pgm
+	display ./output/cl_thd_P5.pgm
 
 clean: 
 	rm ./bin/* ./output/*
