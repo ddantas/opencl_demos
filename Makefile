@@ -60,4 +60,4 @@ thresholdcl:
 	display ./output/cl_thd_P5.pgm
 
 clean: 
-	rm ./bin/* ./output/*
+	rm ./bin/c/* ./bin/opencl/* ./output/*
