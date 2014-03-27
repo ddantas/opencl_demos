@@ -14,6 +14,7 @@ all:
 	gcc -c -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 ./src/opencl/cl_image.c ./src/c/image.o -o ./src/opencl/cl_image.o -lOpenCL
 	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./bin/opencl/invertcl ./src/c/image.o ./src/opencl/cl_image.o ./src/opencl/cl_invert.c -lOpenCL
 	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./bin/opencl/thresholdcl ./src/c/image.o ./src/opencl/cl_image.o ./src/opencl/cl_threshold.c -lOpenCL
+	gcc -I/opt/AMDAPP/include -L/opt/AMDAPP/lib/x86/ -I./src/c/ -I./src/opencl/ -I./ -lm -std=gnu99 -o ./bin/opencl/invert2dcl ./src/c/image.o ./src/opencl/cl_image.o ./src/opencl/cl_invert_2d.c -lOpenCL
 	
 
 show:
@@ -53,11 +54,15 @@ arraysum:
 	
 invertcl:
 	./bin/opencl/invertcl ./images/P5.pgm ./output/cl_inv_P5.pgm
-	display ./output/cl_inv_P5.pgm
+	display ./output/cl_inv_P5.pgm &
 	
 thresholdcl:
 	./bin/opencl/thresholdcl ./images/P5.pgm ./output/cl_thd_P5.pgm
-	display ./output/cl_thd_P5.pgm
+	display ./output/cl_thd_P5.pgm &
+	
+invert2d:
+	./bin/opencl/invert2dcl ./images/P5.pgm ./output/cl_inv_2d_P5.pgm
+	display ./output/cl_inv_2d_P5.pgm &
 
 clean: 
 	rm ./bin/c/* ./bin/opencl/* ./output/*
