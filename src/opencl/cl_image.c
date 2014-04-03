@@ -136,11 +136,11 @@ void cl_invert(CL *cl, IplImage *img){
 void cl_threshold(CL *cl, IplImage *img, unsigned char n){
 	cl_program program;
 	cl_kernel kernel;
+	cl_mem bufA;
 	cl_mem bufB;
-	cl_mem bufC;
 	cl_int err;
 	int size = IMG_SIZE;
-	char *hostC = (char*) malloc (size*sizeof(char));
+	char *host = (char*) malloc (size*sizeof(char));
 	size_t globalSize[1] = {size};
 	const char *krn = "./src/opencl/kernels/threshold.cl";
 	const char **source = getKernelPtr(krn);
@@ -150,21 +150,21 @@ void cl_threshold(CL *cl, IplImage *img, unsigned char n){
 	printf("Build status: "); cl_error(err);
 	kernel = clCreateKernel(program, "threshold", &err);
 	printf("Kernel: "); cl_error(err);
-	bufB = clCreateBuffer(cl->context, CL_MEM_READ_ONLY, (size*sizeof(char)), NULL, &err);
+	bufA = clCreateBuffer(cl->context, CL_MEM_READ_ONLY, (size*sizeof(char)), NULL, &err);
+	printf("bufA status: "); cl_error(err);
+	bufB = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, (size*sizeof(char)), NULL, &err);
 	printf("bufB status: "); cl_error(err);
-	bufC = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, (size*sizeof(char)), NULL, &err);
-	printf("bufC status: "); cl_error(err);
-	clEnqueueWriteBuffer(cl->queue, bufB, CL_TRUE, 0, (size*sizeof(char)), DATA, 0, NULL, NULL);
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
-	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
+	clEnqueueWriteBuffer(cl->queue, bufA, CL_TRUE, 0, (size*sizeof(char)), DATA, 0, NULL, NULL);
+	clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufA);
+	clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufB);
 	clEnqueueNDRangeKernel(cl->queue, kernel, 1, NULL, globalSize, NULL, 0, NULL, NULL);
 	clFinish(cl->queue);
-	clEnqueueReadBuffer(cl->queue, bufC, CL_TRUE, 0, (size*sizeof(char)), hostC, 0, NULL, NULL);
+	clEnqueueReadBuffer(cl->queue, bufB, CL_TRUE, 0, (size*sizeof(char)), host, 0, NULL, NULL);
 	printf("Enqueue buffer status: "); cl_error(err);
 	for (int i=0; i<size; i++)
-		DATA[i] = hostC[i];
+		DATA[i] = host[i];
+	clReleaseMemObject(bufA);
 	clReleaseMemObject(bufB);
-	clReleaseMemObject(bufC);
 	clReleaseKernel(kernel);
 	clReleaseProgram(program);
 }
