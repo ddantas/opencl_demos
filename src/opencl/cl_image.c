@@ -172,37 +172,37 @@ void cl_threshold(CL *cl, IplImage *img, unsigned char n){
 void cl_invert_2d(CL *cl, IplImage *img){
 	
 	cl_int err;
-	cl_image_desc desc = getDesc(cl, img);
-	cl_image_desc descOut = getDesc(cl, img);
+	cl_program program;
+	cl_kernel kernel;
 	cl_image_format src;
 	cl_image_format out;
+	cl_image_desc desc = getDesc(cl, img);
+	cl_image_desc descOut = getDesc(cl, img);
 	src.image_channel_order = CL_A;
 	src.image_channel_data_type = CL_UNORM_INT8;
 	out.image_channel_order = CL_A;
 	out.image_channel_data_type = CL_UNORM_INT8;
-       
+	size_t worksize[] = { img->width, img->height, 1 };
+	size_t *src_origin=(size_t*)malloc(sizeof(size_t)*3);
+	size_t *src_region=(size_t*)malloc(sizeof(size_t)*3);
+	const char *k = "./src/opencl/kernels/invert2d.cl";
+	const char **fonte = getKernelPtr(k);
+	char *out_aux = (char*)malloc(IMG_SIZE*3);
+	for(int i=0; i<3; i++)
+		src_origin[i] = 0;
+	src_region[0] = img->width;
+	src_region[1] = img->height;
+	src_region[2] = 1;
+	
+	
 	cl_mem src_mem = clCreateImage(cl->context, 0, &src, &desc, NULL, &err);
 	printf("Status src: "); cl_error(err);
 	cl_mem out_mem = clCreateImage(cl->context, 0, &out, &descOut, NULL, &err);
 	printf("Status out: "); cl_error(err);
 	clGetMemObjectInfo(src_mem, CL_MEM_TYPE, sizeof(cl_int), &err, NULL);
 	if(err == CL_MEM_OBJECT_IMAGE2D) printf("Image type: CL_MEM_OBJECT_IMAGE2D\n");
-	size_t *src_origin=(size_t*)malloc(sizeof(size_t)*3);
-	src_origin[0] = 0;
-	src_origin[1] = 0;
-	src_origin[2] = 0;
-	size_t *src_region=(size_t*)malloc(sizeof(size_t)*3);
-	src_region[0] = img->width;
-	src_region[1] = img->height;
-	src_region[2] = 1;
 	err = clEnqueueWriteImage(cl->queue, src_mem, CL_TRUE, src_origin, src_region, sizeof(char)*img->width, 0, (uint*)DATA, 0, 0, NULL);
 	printf("Enqueue image status: "); cl_error(err);
-	
-	cl_program program;
-	cl_kernel kernel;
-	const char* k = "./src/opencl/kernels/invert2d.cl";
-	const char** fonte = getKernelPtr(k);
-	
 	program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
 	printf("Create program status: "); cl_error(err);
 	clBuildProgram(program, 0, NULL, NULL, NULL, &err);
@@ -213,17 +213,15 @@ void cl_invert_2d(CL *cl, IplImage *img){
 	printf("Kernel arg 1 status: "); cl_error(err);
 	err = clSetKernelArg( kernel, 1, sizeof( cl_mem ), (void *) &out_mem);
 	printf("Kernel arg 2 status: "); cl_error(err);
-	size_t worksize[] = { img->width, img->height, 1 };
 	err = clEnqueueNDRangeKernel(cl->queue, kernel, 2, NULL, worksize, 0, 0, 0, 0);
 	printf("Enqueued kernel status: "); cl_error(err);
 	clFinish(cl->queue);
-	char* auxout = (char*)malloc(IMG_SIZE*3);
-	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, src_origin, src_region, 0, 0, auxout, 0, NULL, NULL);
+	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, src_origin, src_region, 0, 0, out_aux, 0, NULL, NULL);
 	printf("Read image status: "); cl_error(err);
 	for(int i=0; i<IMG_SIZE; i++)
-        DATA[i] = auxout[i];
+		DATA[i] = out_aux[i];
         
-	free(auxout);    
+	free(out_aux);    
 	clReleaseKernel(kernel);
 	clReleaseProgram(program); 
 }
