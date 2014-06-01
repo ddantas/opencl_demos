@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "cl_image.h"
 
 const char** getKernelPtr(const char* name){

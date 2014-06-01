@@ -1,12 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
 #ifdef __APPLE__
 #include <OpenCL/opencl.h>
 #else
 #include <CL/opencl.h>
 #endif
-#ifndef __CV__
-#include "image.h"
+#ifndef __OPENCV_OLD_CV_H__
+ #include "image.h"
 #endif
 
 typedef struct CL {
