@@ -24,8 +24,8 @@ all:
 	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvert2
 	echo "\nCompiling CV demos\n"
 	$(GCC) ./Cdemos/aviFile.c -o ./bin/aviFile  $(CVINCLUDES) $(CVFLAGS)
-	echo "\nCompiling CL/CV demos\n"
-	$(GCC) ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o -o ./bin/cl_cv_invert $(CLINCLUDES) $(CVINCLUDES) $(CLFLAGS) $(CVFLAGS)
+	#echo "\nCompiling CL/CV demos\n"
+	#$(GCC) ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o -o ./bin/cl_cv_invert $(CLINCLUDES) $(CVINCLUDES) $(CLFLAGS) $(CVFLAGS)
 cvAviFile:
 	$(GCC) ./Cdemos/aviFile.c -o ./bin/aviFile  $(CVINCLUDES) $(CVLDFLAGS)
 clInvert2:
