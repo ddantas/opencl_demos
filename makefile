@@ -97,6 +97,8 @@ run:
 	display ./output/clInvert.pgm
 	./bin/clInvert2 ./input/barbara.pgm ./output/clInvert2.pgm
 	display ./output/clInvert2.pgm
+	./bin/cl_cvinvert ./input/tree.avi
+	./bin/cl_cvinvert2 ./input/sp.jpg
 
 clean:
 	rm ./Cdemos/*.o
