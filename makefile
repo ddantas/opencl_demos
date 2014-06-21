@@ -114,8 +114,8 @@ run:
 	display ./output/laplac.pgm 
 	./bin/clInvertA ./input/barbara.pgm ./output/clInvertA.pgm
 	display ./output/clInvertA.pgm
-	./bin/clInvert2D ./input/sp.jpg 0
-	./bin/clInvert3D ./input/tree.avi 0
+	./bin/clInvert2D ./input/sp.jpg 3
+	./bin/clInvert3D ./input/tree.avi 3
 
 clean:
 	rm ./Cdemos/image.o

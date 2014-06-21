@@ -69,50 +69,44 @@ void cl_error(int error);
 
 cl_image_desc getDesc(CL* cl, IplImage* img){
 	cl_int err;
-	
-	cl_mem imageData = (cl_mem)malloc(img->width*img->height);
-	imageData = clCreateBuffer(cl->context, CL_MEM_COPY_HOST_PTR,
-                        img->width*img->height,
-                        img->imageData, &err);
-    printf("BUFFER IMAGE STATUS: "); cl_error(err);
     cl_image_desc image_d;
-    image_d.image_type = CL_MEM_OBJECT_IMAGE2D;
-    image_d.image_width = (size_t)img->width;
+    image_d.image_type   = CL_MEM_OBJECT_IMAGE2D;
+    image_d.image_width  = (size_t)img->width;
     image_d.image_height = (size_t)img->height;
-    image_d.image_depth = (size_t)img->depth;
-    image_d.image_array_size = (size_t)(img->width*img->height);
-    image_d.image_row_pitch = (size_t)img->width;
-    image_d.image_slice_pitch = image_d.image_array_size;
+    image_d.image_depth  = 0;
+    image_d.image_array_size  = 1;
+    image_d.image_row_pitch   = 0;
+    image_d.image_slice_pitch = 0;
     image_d.num_mip_levels = 0;
-    image_d.num_samples = 0;
-    image_d.buffer = imageData;
+    image_d.num_samples    = 0;
+    image_d.buffer         = NULL;
     
     return image_d;
 }
 
 void clInvert2D(CL* cl, IplImage* img){
 	cl_int err;
-    cl_image_desc desc = getDesc(cl, img);
+	rgb2rgba(img);
+    cl_image_desc desc    = getDesc(cl, img);
     cl_image_desc descOut = getDesc(cl, img);
-    
     cl_image_format src;
     cl_image_format out;
-    src.image_channel_order = CL_A;
+    src.image_channel_order = CL_RGBA;
     src.image_channel_data_type = CL_UNORM_INT8;
-    out.image_channel_order = CL_A;
+    out.image_channel_order = CL_RGBA;
     out.image_channel_data_type = CL_UNORM_INT8;
        
     cl_mem src_mem = 
-    clCreateImage(cl->context, 0, &src, &desc, NULL, &err);
-    printf("IMAGE STATUS SOURCE "); cl_error(err);
+    clCreateImage(cl->context, CL_MEM_READ_ONLY, &src, &desc, NULL, &err);
+    printf("IMAGE STATUS SOURCE\t"); cl_error(err);
     
     cl_mem out_mem = 
-	clCreateImage(cl->context, 0, &out, &descOut, NULL, &err);
-	printf("IMAGE STATUS OUT "); cl_error(err);
+	clCreateImage(cl->context, CL_MEM_WRITE_ONLY, &out, &descOut, NULL, &err);
+	printf("IMAGE STATUS OUT\t"); cl_error(err);
     
     clGetMemObjectInfo(src_mem, CL_MEM_TYPE, sizeof(cl_int), &err, NULL);
     if(err == CL_MEM_OBJECT_IMAGE2D)
-		printf("IMAGE TYPE: CL_MEM_OBJECT_IMAGE2D\n");
+		printf("IMAGE TYPE:\t\tCL_MEM_OBJECT_IMAGE2D\n");
 	
 	size_t *src_origin=(size_t*)malloc(sizeof(size_t)*3);
 	src_origin[0] = 0;
@@ -125,8 +119,8 @@ void clInvert2D(CL* cl, IplImage* img){
 	src_region[2] = 1;
 		
 	err = clEnqueueWriteImage(cl->queue, src_mem, CL_TRUE,
-	src_origin, src_region, sizeof(char)*img->width, 0, 
-	(uint*)img->imageData,
+	src_origin, src_region, 0, 0, 
+	(void*)img->imageData,
 	0, 0, NULL);
 	printf("ENQUEUE IMAGE STATUS "); cl_error(err);
 	
@@ -156,12 +150,13 @@ void clInvert2D(CL* cl, IplImage* img){
 	
 	clFinish(cl->queue);
 	
-	char* auxout = (char*)malloc(img->width*img->height*3);
+	char* auxout = (char*)malloc(img->height*img->width*img->nChannels);
+	ImgInfo(img);
 	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, 
 	src_origin, src_region, 0, 0, auxout, 0, NULL, NULL);
 	printf("READ NEW IMAGE STATUS "); cl_error(err);
 	
-	for(int i=0; i<(img->width*img->height); i++)
+	for(int i=0; i<(img->width*img->nChannels*img->height); i++)
         img->imageData[i] = auxout[i];
         
     free(auxout);    

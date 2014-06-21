@@ -13,16 +13,16 @@ int main(int argc, char** argv){
 	CvCapture* capture = cvCreateFileCapture(argv[1]);
 	
 	IplImage* frame;
-	IplImage* gray_frame;
+	//IplImage* gray_frame;
 	
 	while(1){
 		frame = cvQueryFrame(capture);
 		if(!frame)
 			break;
-		gray_frame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-		cvCvtColor(frame, gray_frame, CV_RGB2GRAY);
-		clInvert2D(cl, gray_frame);
-		cvShowImage("test cv image", gray_frame);
+		//gray_frame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		//cvCvtColor(frame, gray_frame, CV_RGB2GRAY);
+		clInvert2D(cl, /*gray_*/frame);
+		cvShowImage("test cv image", /*gray_*/frame);
 		char c = cvWaitKey(33);
 		if(c == 27)
 			break;
