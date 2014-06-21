@@ -234,15 +234,14 @@ void StartPlatform(CL* cl){
     size_t size;
     
     err = clGetPlatformIDs(1, &cl->platform, NULL);
-    printf("PLATFORM STATUS: "); cl_error(err);
+    printf("PLATFORM STATUS\t"); cl_error(err);
     if(err != 0)
         return;
     
     clGetPlatformInfo(cl->platform, CL_PLATFORM_NAME, 0, NULL, &size);
     info=(char*)malloc(size*sizeof(char));
     clGetPlatformInfo(cl->platform, CL_PLATFORM_NAME, size, info, NULL);
-    printf("USING PLATFORM %s\n", info);
-    printf("\n\n");
+    printf("USING PLATFORM\t%s\n", info);
     free(info);
 }
 
@@ -258,29 +257,24 @@ void StartDevice(CL* cl){
         err =
         clGetDeviceIDs(cl->platform, CL_DEVICE_TYPE_CPU, 1, &cl->device, NULL);
     }
-    printf("DEVICE STATUS: "); cl_error(err);
+    printf("DEVICE STATUS\t"); cl_error(err);
     clGetDeviceInfo(cl->device, CL_DEVICE_NAME, 0, NULL, &size);
     info=(char*)malloc(size*sizeof(char));
     clGetDeviceInfo(cl->device, CL_DEVICE_NAME, size, info, NULL);
-    
-    printf("USING DEVICE: %s\n", info);
-    
+    printf("USING DEVICE\t%s\n", info);
     free(info);
-    printf("\n\n");
 }
 
 void StartContext(CL* cl){
     cl_int err;
     cl->context = clCreateContext(0, 1, &cl->device, NULL, NULL, &err);
-    printf("CONTEXT STATUS: "); cl_error(err);
-    printf("\n\n");
+    printf("CONTEXT STATUS\t"); cl_error(err);
 }
 
 void StartQueue(CL* cl){
     cl_int err;
     cl->queue = clCreateCommandQueue(cl->context, cl->device, 0, &err);
-    printf("QUEUE STATUS: "); cl_error(err);
-    printf("\n\n");
+    printf("QUEUE STATUS\t"); cl_error(err);
 }
 
 void ReleaseCL(CL* cl){
