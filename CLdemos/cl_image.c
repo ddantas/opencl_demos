@@ -20,6 +20,8 @@ void rgba2rgb(IplImage* img){
 }
 
 void rgb2rgba(IplImage* img){
+	if(!(img->nChannels==3))
+		exit;
 	char* b = (char*)malloc(img->height*img->width*4);
 	int i=0, j=0;
 	for(int k=0; k<(img->width*img->height); k++){
@@ -137,9 +139,9 @@ void clInvert2D(CL* cl, IplImage* img){
 	const char* k2 = "./CLdemos/CL/Invert2D_A.cl";
 	char** fonte;
 	if(img->nChannels==1)
-		fonte = getKernelPtr(k2);
+		fonte = (char**)getKernelPtr(k2);
 	if(img->nChannels==4)
-		fonte = getKernelPtr(k);
+		fonte = (char**)getKernelPtr(k);
 	
 	program = clCreateProgramWithSource(cl->context, 1, (const char**)fonte, NULL, &err);
 	printf("CREATE PROGRAM STATUS: "); cl_error(err);
