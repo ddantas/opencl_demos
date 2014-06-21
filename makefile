@@ -118,10 +118,19 @@ run:
 	./bin/clInvert3D ./input/tree.avi 0
 
 clean:
-	rm ./Cdemos/*.o
-	rm ./CLdemos/*.o
-	rm ./bin/*
-	rm ./output/*
+	rm ./Cdemos/image.o
+	rm ./CLdemos/cl_image.o
+	rm ./bin/blur*
+	rm ./bin/clInvert2D*
+	rm ./bin/clInvert3D*
+	rm ./bin/clInvertA*
+	rm ./bin/filMed*
+	rm ./bin/fliph*
+	rm ./bin/flipv*
+	rm ./bin/invert*
+	rm ./bin/laplac*
+	rm ./bin/threshold*
+	rm ./output/*.pgm
 clclean:
 	rm ./CLdemos/*.o
 	rm ./bin/cl*
