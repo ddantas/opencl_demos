@@ -31,22 +31,16 @@ all:
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/opencl
 	
 	gcc ./CLdemos/clInvert.c ./CLdemos/cl_image.o ./Cdemos/image.o \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvert
-	
-	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o  \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvert2
-	
-	echo "\nCompiling CV demos\n"
-	g++ ./Cdemos/aviFile.c -o ./bin/aviFile  $(CVINCLUDES) $(CVFLAGS)
-	
+	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvertA
+
 	echo "\nCompiling CL/CV demos\n"
 	gcc ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
-	$(CVINCLUDES) $(CVFLAGS) -o ./bin/cl_cvinvert
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
 	
 	gcc ./CLdemos/cl_cv_invert2.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
-	$(CVINCLUDES) $(CVFLAGS) -o ./bin/cl_cvinvert2
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
 	
 cImage:
 	gcc -c ./Cdemos/image.c -o ./Cdemos/image.o -I. $(CFLAGS)
@@ -70,14 +64,45 @@ clImage:
 clMain:
 	gcc ./CLdemos/main.c ./CLdemos/cl_image.o ./Cdemos/image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/opencl
-clInvert:
+clInvertA:
 	gcc ./CLdemos/clInvert.c ./CLdemos/cl_image.o ./Cdemos/image.o \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvert
-clInvert2:
-	gcc ./CLdemos/clInvert2.c ./CLdemos/cl_image.o ./Cdemos/image.o  \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvert2
-cvAvi3D:
-	g++ ./Cdemos/aviFile.c -o ./bin/aviFile  $(CVINCLUDES) $(CVFLAGS)
+	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvertA
+clInvert2D:
+	gcc ./CLdemos/cl_cv_invert2.c ./CLdemos/cl_image.o \
+	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
+clInvert3D:
+	gcc ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o \
+	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
+run_cfliph:
+	./bin/fliph ./input/barbara.pgm ./output/fliph.pgm
+	display ./output/fliph.pgm 
+run_cflipv:
+	./bin/flipv ./input/barbara.pgm ./output/flipv.pgm
+	display ./output/flipv.pgm
+run_cinvert:
+	./bin/invert ./input/barbara.pgm ./output/invert.pgm
+	display ./output/invert.pgm
+run_cthreshold:
+	./bin/threshold ./input/barbara.pgm ./output/threshold.pgm
+	display ./output/threshold.pgm 
+run_cfilMed:
+	./bin/filMed ./input/barbara.pgm ./output/filMed.pgm
+	display ./output/filMed.pgm
+run_cblur:
+	./bin/blur ./input/barbara.pgm ./output/blur.pgm
+	display ./output/blur.pgm
+run_claplac:
+	./bin/laplac ./input/barbara.pgm ./output/laplac.pgm
+	display ./output/laplac.pgm
+run_clInvertA:
+	./bin/clInvertA ./input/barbara.pgm ./output/clInvertA.pgm
+	display ./output/clInvertA.pgm
+run_clInvert2D:
+	./bin/clInvert2D ./input/sp.jpg
+run_clInvert3D:
+	./bin/clInvert3D  ./input/tree.avi
 run:
 	./bin/fliph ./input/barbara.pgm ./output/fliph.pgm
 	display ./output/fliph.pgm 
@@ -93,12 +118,10 @@ run:
 	display ./output/blur.pgm 
 	./bin/laplac ./input/barbara.pgm ./output/laplac.pgm
 	display ./output/laplac.pgm 
-	./bin/clInvert ./input/barbara.pgm ./output/clInvert.pgm
-	display ./output/clInvert.pgm
-	./bin/clInvert2 ./input/barbara.pgm ./output/clInvert2.pgm
-	display ./output/clInvert2.pgm
-	./bin/cl_cvinvert ./input/tree.avi
-	./bin/cl_cvinvert2 ./input/sp.jpg
+	./bin/clInvertA ./input/barbara.pgm ./output/clInvertA.pgm
+	display ./output/clInvertA.pgm
+	./bin/clInvert2D ./input/sp.jpg
+	./bin/clInvert3D ./input/tree.avi
 
 clean:
 	rm ./Cdemos/*.o
