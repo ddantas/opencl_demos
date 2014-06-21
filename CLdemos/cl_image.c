@@ -2,6 +2,49 @@
 #include <stdlib.h>
 #include "cl_image.h"
 
+void rgba2rgb(IplImage* img){
+	if(!(img->nChannels==4))
+		exit;
+	char* b = (char*)malloc(img->height*img->width*3);
+	int i=0, j=0;
+	for(int k=0; k<(img->width*img->height); k++){
+		b[i] = img->imageData[j]; i++; j++;
+		b[i] = img->imageData[j]; i++; j++;
+		b[i] = img->imageData[j]; i++; j++;
+		j++;
+	}
+	img->imageData = b;
+	img->nChannels = 3;
+	img->widthStep = img->width*3;
+	img->imageSize = img->height*img->widthStep;
+}
+
+void rgb2rgba(IplImage* img){
+	char* b = (char*)malloc(img->height*img->width*4);
+	int i=0, j=0;
+	for(int k=0; k<(img->width*img->height); k++){
+		b[i] = img->imageData[j]; i++; j++;
+		b[i] = img->imageData[j]; i++; j++;
+		b[i] = img->imageData[j]; i++; j++;
+		b[i] = 0; i++;
+	}
+	img->imageData = b;
+	img->nChannels = 4;
+	img->widthStep = img->width*4;
+	img->imageSize = img->height*img->widthStep;
+}
+
+void ImgInfo(IplImage* img){
+	printf("nSize        \t%d\n", img->nSize);
+	printf("ID           \t%d\n", img->ID);
+	printf("nChannels    \t%d\n", img->nChannels);
+	printf("depth in bits\t%d\n", img->depth);
+    printf("width        \t%d\n", img->width);
+    printf("height       \t%d\n", img->height);
+    printf("imageSize    \t%d\n", img->imageSize);
+    printf("widthStep    \t%d\n", img->widthStep);
+}
+
 const char** getKernelPtr(const char* name){
     FILE *program_handle;
     char **program_buffer;
