@@ -86,14 +86,20 @@ cl_image_desc getDesc(CL* cl, IplImage* img){
 
 void clInvert2D(CL* cl, IplImage* img){
 	cl_int err;
-	rgb2rgba(img);
     cl_image_desc desc    = getDesc(cl, img);
     cl_image_desc descOut = getDesc(cl, img);
     cl_image_format src;
     cl_image_format out;
-    src.image_channel_order = CL_RGBA;
+    if(img->nChannels==1){
+		src.image_channel_order = CL_A;
+		out.image_channel_order = CL_A;
+	}
+	if(img->nChannels==3){
+		rgb2rgba(img);
+		src.image_channel_order = CL_RGBA;
+		out.image_channel_order = CL_RGBA;
+	}
     src.image_channel_data_type = CL_UNORM_INT8;
-    out.image_channel_order = CL_RGBA;
     out.image_channel_data_type = CL_UNORM_INT8;
        
     cl_mem src_mem = 
@@ -128,9 +134,14 @@ void clInvert2D(CL* cl, IplImage* img){
 	cl_kernel kernel;
 	
 	const char* k = "./CLdemos/CL/Invert2D_RGBA.cl";
-	const char** fonte = getKernelPtr(k);
+	const char* k2 = "./CLdemos/CL/Invert2D_A.cl";
+	char** fonte;
+	if(img->nChannels==1)
+		fonte = getKernelPtr(k2);
+	if(img->nChannels==4)
+		fonte = getKernelPtr(k);
 	
-	program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
+	program = clCreateProgramWithSource(cl->context, 1, (const char**)fonte, NULL, &err);
 	printf("CREATE PROGRAM STATUS: "); cl_error(err);
 	clBuildProgram(program, 0, NULL, NULL, NULL, &err);
 	printf("BUILD PROGRAM STATUS: "); cl_error(err);
@@ -151,7 +162,6 @@ void clInvert2D(CL* cl, IplImage* img){
 	clFinish(cl->queue);
 	
 	char* auxout = (char*)malloc(img->height*img->width*img->nChannels);
-	ImgInfo(img);
 	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, 
 	src_origin, src_region, 0, 0, auxout, 0, NULL, NULL);
 	printf("READ NEW IMAGE STATUS "); cl_error(err);
