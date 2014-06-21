@@ -11,7 +11,7 @@ int main(int argc, char** argv){
 	IplImage* img = (IplImage*)malloc(sizeof(IplImage));
 	img = ImRead(argv[1]);
 	
-	cl_ImInvert(cl,img);
+	clInvertA(cl,img);
 	ImWrite(img, argv[2]);
 	
 	return 0;

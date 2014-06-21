@@ -126,63 +126,7 @@ void cl_ImInvert2(CL* cl, IplImage* img){
     clReleaseProgram(program);
 }
 
-void cl_ImThreshold(CL* cl, IplImage* img, unsigned char thre){
-    cl_program program;
-    cl_kernel kernel;
-    //cl_mem bufA;
-    cl_mem bufB;
-    cl_mem bufC;
-    cl_int err;
-    int tam = img->width*img->height;
-    
-    char* hostC = (char*)malloc(tam*sizeof(char));
-    
-    size_t globalSize[1] = { tam };
-    
-    //const char* k = "./CL/Threshold.cl";
-    const char* k = "./CLdemos/CL/Threshold.cl";
-    const char** fonte = getKernelPtr(k);
-    
-    program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
-    
-    clBuildProgram(program, 0, NULL, NULL, NULL, &err);
-    printf("BUILD STATUS: "); cl_error(err);
-    
-    kernel = clCreateKernel(program, "Threshold", &err);
-    printf("KERNEL    "); cl_error(err);
-    
-    //bufA = clCreateBuffer(cl->context, CL_MEM_READ_ONLY, sizeof(char), NULL, &err);
-    //printf("BUF A STATUS: "); cl_error(err);
-    bufB = clCreateBuffer(cl->context, CL_MEM_READ_ONLY, (tam*sizeof(char)), NULL, &err);
-    printf("BUF B STATUS: "); cl_error(err);
-    bufC = clCreateBuffer(cl->context, CL_MEM_READ_WRITE, (tam*sizeof(char)), NULL, &err);
-    printf("BUF C STATUS: "); cl_error(err);
-    //clEnqueueWriteBuffer(cl->queue, bufA, CL_TRUE, 0, sizeof(char), &thre, 0, NULL, NULL);
-    clEnqueueWriteBuffer(cl->queue, bufB, CL_TRUE, 0, tam*sizeof(char), img->imageData, 0, NULL, NULL);
-    //clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
-    //clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
-    //clSetKernelArg(kernel, 2, sizeof(cl_mem), &bufA);
-    
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), &bufB);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &bufC);
-    
-    clEnqueueNDRangeKernel(cl->queue, kernel, 1, NULL, globalSize, NULL, 0, NULL, NULL);
-    
-    clFinish(cl->queue);
-    
-    clEnqueueReadBuffer(cl->queue, bufC, CL_TRUE, 0, tam*sizeof(char), hostC, 0, NULL, NULL);
-    printf("ENQUEUE BUFFER STATUS: "); cl_error(err);
-    
-    for(int i=0; i<tam; i++)
-        img->imageData[i] = hostC[i];
-
-    clReleaseMemObject(bufB);
-    clReleaseMemObject(bufC);
-    clReleaseKernel(kernel);
-    clReleaseProgram(program);
-}
-
-void cl_ImInvert(CL* cl, IplImage* img){
+void clInvertA(CL* cl, IplImage* img){
     cl_program program;
     cl_kernel kernel;
     cl_mem bufB;
@@ -231,10 +175,6 @@ void cl_ImInvert(CL* cl, IplImage* img){
     clReleaseKernel(kernel);
     clReleaseProgram(program);
 }
-
-
-
-
 
 void StartPlatform(CL* cl){
     cl_int err;
@@ -301,7 +241,6 @@ void StartCL(CL* cl){
     StartDevice(cl);
     StartContext(cl);
 }
-
 
 void cl_error(int error){
     switch(error){

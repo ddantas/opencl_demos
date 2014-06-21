@@ -22,7 +22,7 @@ void StartContext(CL*);
 void StartQueue(CL*);
 void ReleaseCL(CL*);
 void StartCL(CL*);
-void cl_ImInvert(CL*, IplImage*);
+void clInvertA(CL*, IplImage*);
 void cl_ImThreshold(CL*, IplImage*, unsigned char);
 
 
