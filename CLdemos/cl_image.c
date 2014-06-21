@@ -127,7 +127,7 @@ void clInvert2D(CL* cl, IplImage* img){
 	cl_program program;
 	cl_kernel kernel;
 	
-	const char* k = "./CLdemos/CL/Invert2.cl";
+	const char* k = "./CLdemos/CL/Invert2D_RGBA.cl";
 	const char** fonte = getKernelPtr(k);
 	
 	program = clCreateProgramWithSource(cl->context, 1, fonte, NULL, &err);
