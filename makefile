@@ -27,18 +27,15 @@ all:
 	gcc -c ./CLdemos/cl_image.c ./Cdemos/image.o $(CINCLUDES) $(CFLAGS) \
 	$(CLINCLUDES) $(CLFLAGS) -o ./CLdemos/cl_image.o
 	
-	gcc ./CLdemos/main.c ./CLdemos/cl_image.o ./Cdemos/image.o \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/opencl
-	
-	gcc ./CLdemos/clInvert.c ./CLdemos/cl_image.o ./Cdemos/image.o \
+	gcc ./CLdemos/clInvertA.c ./CLdemos/cl_image.o ./Cdemos/image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvertA
 
 	echo "\nCompiling CL/CV demos\n"
-	gcc ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert3D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
 	
-	gcc ./CLdemos/cl_cv_invert2.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert2D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
 	
@@ -61,18 +58,15 @@ cLaplac:
 clImage:
 	gcc -c ./CLdemos/cl_image.c ./Cdemos/image.o $(CINCLUDES) $(CFLAGS) \
 	$(CLINCLUDES) $(CLFLAGS) -o ./CLdemos/cl_image.o
-clMain:
-	gcc ./CLdemos/main.c ./CLdemos/cl_image.o ./Cdemos/image.o \
-	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/opencl
 clInvertA:
-	gcc ./CLdemos/clInvert.c ./CLdemos/cl_image.o ./Cdemos/image.o \
+	gcc ./CLdemos/clInvertA.c ./CLdemos/cl_image.o ./Cdemos/image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvertA
 clInvert2D:
-	gcc ./CLdemos/cl_cv_invert2.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert2D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
 clInvert3D:
-	gcc ./CLdemos/cl_cv_invert.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert3D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
 run_cfliph:
