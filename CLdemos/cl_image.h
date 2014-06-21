@@ -26,4 +26,4 @@ void clInvertA(CL*, IplImage*);
 void cl_ImThreshold(CL*, IplImage*, unsigned char);
 
 
-void cl_ImInvert2(CL*, IplImage*);
+void clInvert2D(CL*, IplImage*);

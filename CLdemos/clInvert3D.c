@@ -21,7 +21,7 @@ int main(int argc, char** argv){
 			break;
 		gray_frame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
 		cvCvtColor(frame, gray_frame, CV_RGB2GRAY);
-		cl_ImInvert2(cl, gray_frame);
+		clInvert2D(cl, gray_frame);
 		cvShowImage("test cv image", gray_frame);
 		char c = cvWaitKey(33);
 		if(c == 27)

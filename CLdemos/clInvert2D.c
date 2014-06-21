@@ -10,10 +10,10 @@ int main(int argc, char** argv){
 	StartQueue(cl);
 	
 	IplImage* img = NULL;
-	img = cvLoadImage(argv[1], 0);
+	img = cvLoadImage(argv[1], atoi(argv[2]));
 	
 	cvNamedWindow("test cv image", CV_WINDOW_AUTOSIZE);
-	cl_ImInvert2(cl, img);
+	clInvert2D(cl, img);
 	cvShowImage("test cv image", img);
 	
 	cvWaitKey(0);

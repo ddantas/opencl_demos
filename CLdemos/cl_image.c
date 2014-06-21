@@ -47,7 +47,7 @@ cl_image_desc getDesc(CL* cl, IplImage* img){
     return image_d;
 }
 
-void cl_ImInvert2(CL* cl, IplImage* img){
+void clInvert2D(CL* cl, IplImage* img){
 	cl_int err;
     cl_image_desc desc = getDesc(cl, img);
     cl_image_desc descOut = getDesc(cl, img);
@@ -125,6 +125,8 @@ void cl_ImInvert2(CL* cl, IplImage* img){
     clReleaseKernel(kernel);
     clReleaseProgram(program);
 }
+
+
 
 void clInvertA(CL* cl, IplImage* img){
     cl_program program;
