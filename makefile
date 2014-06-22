@@ -69,7 +69,7 @@ clInvert2D:
 	gcc ./CLdemos/clInvert2D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
-clInvert3D:
+clInvert2D3D:
 	gcc ./CLdemos/clInvert2D3D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D3D
@@ -99,7 +99,7 @@ run_clInvertA:
 	display ./output/clInvertA.pgm
 run_clInvert2D:
 	./bin/clInvert2D ./input/sp.jpg
-run_clInvert3D:
+run_clInvert2D3D:
 	./bin/clInvert2D3D  ./input/tree.avi
 run:
 	./bin/fliph ./input/barbara.pgm ./output/fliph.pgm
@@ -122,11 +122,11 @@ run:
 	./bin/clInvert2D3D ./input/tree.avi 3
 
 clean:
-	rm ./Cdemos/image.o
-	rm ./CLdemos/cl_image.o
+	rm ./Cdemos/*.o
+	rm ./CLdemos/*.o
 	rm ./bin/blur*
-	rm ./bin/clInvert2D*
 	rm ./bin/clInvert2D3D*
+	rm ./bin/clInvert2D*
 	rm ./bin/clInvertA*
 	rm ./bin/filMed*
 	rm ./bin/fliph*
