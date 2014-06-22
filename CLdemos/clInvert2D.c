@@ -14,6 +14,7 @@ int main(int argc, char** argv){
 	
 	cvNamedWindow("test cv image", CV_WINDOW_AUTOSIZE);
 	clInvert2D(cl, img);
+	cvMoveWindow("test cv image", 0,0);
 	cvShowImage("test cv image", img);
 	
 	cvWaitKey(0);

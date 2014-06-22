@@ -35,9 +35,9 @@ all:
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) -o ./bin/clInvertA
 
 	echo "\nCompiling CL/CV demos\n"
-	gcc ./CLdemos/clInvert3D.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert2D3D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
-	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D3D
 	
 	gcc ./CLdemos/clInvert2D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
@@ -70,9 +70,9 @@ clInvert2D:
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
 	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D
 clInvert3D:
-	gcc ./CLdemos/clInvert3D.c ./CLdemos/cl_image.o \
+	gcc ./CLdemos/clInvert2D3D.c ./CLdemos/cl_image.o \
 	$(CINCLUDES) $(CFLAGS) $(CLINCLUDES) $(CLFLAGS) \
-	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert3D
+	$(CVINCLUDES) $(CVFLAGS) -o ./bin/clInvert2D3D
 run_cfliph:
 	./bin/fliph ./input/barbara.pgm ./output/fliph.pgm
 	display ./output/fliph.pgm 
@@ -100,7 +100,7 @@ run_clInvertA:
 run_clInvert2D:
 	./bin/clInvert2D ./input/sp.jpg
 run_clInvert3D:
-	./bin/clInvert3D  ./input/tree.avi
+	./bin/clInvert2D3D  ./input/tree.avi
 run:
 	./bin/fliph ./input/barbara.pgm ./output/fliph.pgm
 	display ./output/fliph.pgm 
@@ -119,14 +119,14 @@ run:
 	./bin/clInvertA ./input/barbara.pgm ./output/clInvertA.pgm
 	display ./output/clInvertA.pgm
 	./bin/clInvert2D ./input/sp.jpg 3
-	./bin/clInvert3D ./input/tree.avi 3
+	./bin/clInvert2D3D ./input/tree.avi 3
 
 clean:
 	rm ./Cdemos/image.o
 	rm ./CLdemos/cl_image.o
 	rm ./bin/blur*
 	rm ./bin/clInvert2D*
-	rm ./bin/clInvert3D*
+	rm ./bin/clInvert2D3D*
 	rm ./bin/clInvertA*
 	rm ./bin/filMed*
 	rm ./bin/fliph*
