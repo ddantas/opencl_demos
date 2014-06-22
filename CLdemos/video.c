@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <cv.h>
+#include <highgui.h>
 #include "video.h"
 void startVgl(VglImage* img){
 	img->ipl=(IplImage*)malloc(sizeof(IplImage));

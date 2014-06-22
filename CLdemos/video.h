@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <cv.h>
-#include <highgui.h>
 #define MAX_DIM 3
 /*	Structure of 3D image */
 typedef struct _VglImage {

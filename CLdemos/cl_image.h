@@ -4,13 +4,7 @@
 #include <CL/opencl.h>
 #endif
 #include <opencv2/core/types_c.h>
-#define MAX_DIM 3
-/*	Structure of 3D image */
-typedef struct _VglImage {
-	IplImage* img;
-	char* ndarray;
-	int shape[MAX_DIM];
-} VglImage;
+#include "video.h"
 /*	Structure of the base type CL */
 //	Type definition
 typedef struct CL {

@@ -24,7 +24,11 @@ all:
 	gcc ./Cdemos/blur.c        ./Cdemos/image.o -o ./bin/blur      -I. $(CFLAGS)
 	gcc ./Cdemos/laplac.c      ./Cdemos/image.o -o ./bin/laplac    -I. $(CFLAGS)
 	echo "Compiling CL demos\n"
-	gcc -c ./CLdemos/cl_image.c -I. $(CINCLUDES) $(CFLAGS) \
+	gcc -c ./CLdemos/video.c -o ./CLdemos/video.o -I. $(CFLAGS) \
+	$(CVFLAGS) $(CVINCLUDES)
+	
+	gcc -c ./CLdemos/cl_image.c ./CLdemos/video.o -I. -I./CLdemos/ \
+	$(CINCLUDES) $(CFLAGS) \
 	$(CLINCLUDES) $(CLFLAGS) -o ./CLdemos/cl_image.o
 	
 	gcc ./CLdemos/clInvertA.c ./CLdemos/cl_image.o ./Cdemos/image.o -I. \
