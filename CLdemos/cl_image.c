@@ -69,13 +69,16 @@ const char** getKernelPtr(const char* name){
 
 void cl_error(int error);
 
-cl_image_desc getDesc(CL* cl, IplImage* img){
+cl_image_desc getDesc(int width, int height, int ndim, int depth){
 	cl_int err;
     cl_image_desc image_d;
-    image_d.image_type   = CL_MEM_OBJECT_IMAGE2D;
-    image_d.image_width  = (size_t)img->width;
-    image_d.image_height = (size_t)img->height;
-    image_d.image_depth  = 0;
+    if(ndim==2)
+		image_d.image_type   = CL_MEM_OBJECT_IMAGE2D;
+	if(ndim==3)
+		image_d.image_type	 = CL_MEM_OBJECT_IMAGE3D;
+    image_d.image_width  = (size_t)width;
+    image_d.image_height = (size_t)height;
+    image_d.image_depth  = (size_t)depth;
     image_d.image_array_size  = 1;
     image_d.image_row_pitch   = 0;
     image_d.image_slice_pitch = 0;
@@ -88,8 +91,8 @@ cl_image_desc getDesc(CL* cl, IplImage* img){
 
 void clInvert2D(CL* cl, IplImage* img){
 	cl_int err;
-    cl_image_desc desc    = getDesc(cl, img);
-    cl_image_desc descOut = getDesc(cl, img);
+    cl_image_desc desc    = getDesc(img->width, img->height, 2, 0);
+    cl_image_desc descOut = getDesc(img->width, img->height, 2, 0);
     cl_image_format src;
     cl_image_format out;
     if(img->nChannels==1){
