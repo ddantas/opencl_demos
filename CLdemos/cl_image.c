@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <cv.h>
+#include <highgui.h>
 #include "cl_image.h"
 
 void rgba2rgb(IplImage* img){
@@ -19,24 +21,47 @@ void rgba2rgb(IplImage* img){
 	img->imageSize = img->height*img->widthStep;
 }
 
-void rgb2rgba(IplImage* img){
-	if(!(img->nChannels==3))
-		exit;
-	char* b = (char*)malloc(img->height*img->width*4);
-	int i=0, j=0;
-	for(int k=0; k<(img->width*img->height); k++){
-		b[i] = img->imageData[j]; i++; j++;
-		b[i] = img->imageData[j]; i++; j++;
-		b[i] = img->imageData[j]; i++; j++;
-		b[i] = 0; i++;
+void rgb2rgba(IplImage* img, VglImage* vgl){
+	if(vgl==NULL){
+		if(img->nChannels==4)
+			exit;
+		if(!(img->nChannels==3)){
+			printf("Numero de canais não suportado\n");
+			exit;
+		}
+		//jogar fora ipl e criar outra
+		char* b = (char*)malloc(img->height*img->width*4);
+		int i=0, j=0;
+		for(int k=0; k<(img->width*img->height); k++){
+			b[i] = img->imageData[j]; i++; j++;
+			b[i] = img->imageData[j]; i++; j++;
+			b[i] = img->imageData[j]; i++; j++;
+			b[i] = 0; i++;
+		}
+		img->imageData = b;
+		img->nChannels = 4;
+		img->widthStep = img->width*4;
+		img->imageSize = img->height*img->widthStep;
+	}else if(img==NULL){
+		if(vgl->nChannels==4)
+			exit;
+		if(!(vgl->nChannels==3)){
+			printf("Numero de canais não suportado\n");
+			exit;
+		}
+		char* b = (char*)malloc(vgl->shape[0]*vgl->shape[1]*vgl->shape[2]*4);
+		int i=0, j=0;
+		for(int k=0; k<(vgl->shape[0]*vgl->shape[1]*vgl->shape[2]); k++){
+			b[i] = vgl->ndarray[j]; i++; j++;
+			b[i] = vgl->ndarray[j]; i++; j++;
+			b[i] = vgl->ndarray[j]; i++; j++;
+			b[i] = 0; i++;
+		}
+		vgl->ndarray = b;
+		vgl->nChannels = 4;
 	}
-	img->imageData = b;
-	img->nChannels = 4;
-	img->widthStep = img->width*4;
-	img->imageSize = img->height*img->widthStep;
 }
-
-void ImgInfo(IplImage* img){
+void printfImgInfo(IplImage* img){
 	printf("nSize        \t%d\n", img->nSize);
 	printf("ID           \t%d\n", img->ID);
 	printf("nChannels    \t%d\n", img->nChannels);
@@ -68,17 +93,19 @@ const char** getKernelPtr(const char* name){
 }
 
 void cl_error(int error);
-
-cl_image_desc getDesc(int width, int height, int ndim, int depth){
+//depth to nframes
+//parametro nframes opcional
+//parametro ndim padrão 2 e é opcional
+cl_image_desc getDesc(int width, int height, int ndim, int nframes){
 	cl_int err;
     cl_image_desc image_d;
-    if(ndim==2)
+    if(ndim!=3)
 		image_d.image_type   = CL_MEM_OBJECT_IMAGE2D;
-	if(ndim==3)
+	else
 		image_d.image_type	 = CL_MEM_OBJECT_IMAGE3D;
     image_d.image_width  = (size_t)width;
     image_d.image_height = (size_t)height;
-    image_d.image_depth  = (size_t)depth;
+    image_d.image_depth  = (size_t)nframes;
     image_d.image_array_size  = 1;
     image_d.image_row_pitch   = 0;
     image_d.image_slice_pitch = 0;
@@ -91,18 +118,27 @@ cl_image_desc getDesc(int width, int height, int ndim, int depth){
 
 void clInvert2D(CL* cl, IplImage* img){
 	cl_int err;
-    cl_image_desc desc    = getDesc(img->width, img->height, 2, 0);
-    cl_image_desc descOut = getDesc(img->width, img->height, 2, 0);
+    cl_image_desc desc    = getDesc(img->width, img->height, 0, 0);
+    cl_image_desc descOut = getDesc(img->width, img->height, 0, 0);
     cl_image_format src;
     cl_image_format out;
-    if(img->nChannels==1){
-		src.image_channel_order = CL_A;
-		out.image_channel_order = CL_A;
-	}
-	if(img->nChannels==3){
-		rgb2rgba(img);
-		src.image_channel_order = CL_RGBA;
-		out.image_channel_order = CL_RGBA;
+    switch(img->nChannels){
+		case 1:
+			src.image_channel_order = CL_A;
+			out.image_channel_order = CL_A;
+			break;
+		case 3:
+			rgb2rgba(img, NULL);
+			src.image_channel_order = CL_RGBA;
+			out.image_channel_order = CL_RGBA;
+			break;
+		case 4:
+			src.image_channel_order = CL_RGBA;
+			out.image_channel_order = CL_RGBA;
+			break;
+		default:
+			printf("Numero de canais não suportado\n");
+			exit;
 	}
     src.image_channel_data_type = CL_UNORM_INT8;
     out.image_channel_data_type = CL_UNORM_INT8;
@@ -179,7 +215,102 @@ void clInvert2D(CL* cl, IplImage* img){
     clReleaseProgram(program);
 }
 
+void clInvert3D(CL* cl, VglImage* img){
+	cl_int err;
+    cl_image_desc desc    = getDesc(img->shape[0], img->shape[1], 3, img->shape[2]);
+    cl_image_desc descOut = getDesc(img->shape[0], img->shape[1], 3, img->shape[2]);
+    cl_image_format src;
+    cl_image_format out;
+    switch(img->nChannels){
+		case 1:
+			src.image_channel_order = CL_A;
+			out.image_channel_order = CL_A;
+			break;
+		case 3:
+			rgb2rgba(NULL, img);
+			src.image_channel_order = CL_RGBA;
+			out.image_channel_order = CL_RGBA;
+			break;
+		case 4:
+			src.image_channel_order = CL_RGBA;
+			out.image_channel_order = CL_RGBA;
+			break;
+		default:
+			printf("Numero de canais não suportado\n");
+			exit;
+	}
+    src.image_channel_data_type = CL_UNORM_INT8;
+    out.image_channel_data_type = CL_UNORM_INT8;
+       
+    cl_mem src_mem = 
+    clCreateImage(cl->context, CL_MEM_READ_ONLY, &src, &desc, NULL, &err);
+    printf("IMAGE STATUS SOURCE\t"); cl_error(err);
+    
+    cl_mem out_mem = 
+	clCreateImage(cl->context, CL_MEM_WRITE_ONLY, &out, &descOut, NULL, &err);
+	printf("IMAGE STATUS OUT\t"); cl_error(err);
+    
+    clGetMemObjectInfo(src_mem, CL_MEM_TYPE, sizeof(cl_int), &err, NULL);
+    if(err == CL_MEM_OBJECT_IMAGE3D)
+		printf("IMAGE TYPE:\t\tCL_MEM_OBJECT_IMAGE3D\n");
+	
+	size_t *src_origin=(size_t*)malloc(sizeof(size_t)*3);
+	src_origin[0] = 0;
+	src_origin[1] = 0;
+	src_origin[2] = 0;
+	
+	size_t *src_region=(size_t*)malloc(sizeof(size_t)*3);
+	src_region[0] = img->shape[0];
+	src_region[1] = img->shape[1];
+	src_region[2] = img->shape[2];
+		
+	err = clEnqueueWriteImage(cl->queue, src_mem, CL_TRUE,
+	src_origin, src_region, 0, 0, (void*)img->ndarray, 0, 0, NULL);
+	printf("ENQUEUE IMAGE STATUS "); cl_error(err);
+	
+	cl_program program;
+	cl_kernel kernel;
+	
+	const char* k  = "./CLdemos/CL/Invert3D_RGBA.cl";
+	const char* k2 = "./CLdemos/CL/Invert3D_A.cl";
+	char** fonte;
+	if(img->nChannels==1)
+		fonte = (char**)getKernelPtr(k2);
+	if(img->nChannels==4)
+		fonte = (char**)getKernelPtr(k);
+	
+	program = clCreateProgramWithSource(cl->context, 1, (const char**)fonte, NULL, &err);
+	printf("CREATE PROGRAM STATUS: "); cl_error(err);
+	clBuildProgram(program, 0, NULL, NULL, NULL, &err);
+	printf("BUILD PROGRAM STATUS: "); cl_error(err);
+	kernel = clCreateKernel(program, "invert", &err);
+	printf("KERNEL STATUS "); cl_error(err);
+	
+	
+	err = clSetKernelArg( kernel, 0, sizeof( cl_mem ), (void *) &src_mem);
+	printf("SET 1 KERNEL ARG "); cl_error(err);
+	err = clSetKernelArg( kernel, 1, sizeof( cl_mem ), (void *) &out_mem);
+	printf("SET 2 KERNEL ARG "); cl_error(err);
 
+	size_t worksize[] = { img->shape[0], img->shape[1], img->shape[2]};
+	err = clEnqueueNDRangeKernel(cl->queue, kernel, 2, NULL, worksize,
+	0, 0, 0, 0);
+	printf("ENQUEUE ND KERNEL STATUS "); cl_error(err);
+	
+	clFinish(cl->queue);
+	
+	char* auxout = (char*)malloc(img->shape[0]*img->shape[1]*img->shape[2]*img->nChannels);
+	err = clEnqueueReadImage(cl->queue, out_mem, CL_TRUE, 
+	src_origin, src_region, 0, 0, auxout, 0, NULL, NULL);
+	printf("READ NEW IMAGE STATUS "); cl_error(err);
+	
+	for(int i=0; i<(img->shape[0]*img->nChannels*img->shape[1]*img->shape[2]); i++)
+        img->ndarray[i] = auxout[i];
+        
+    free(auxout);    
+    clReleaseKernel(kernel);
+    clReleaseProgram(program);
+}
 
 void clInvertA(CL* cl, IplImage* img){
     cl_program program;
@@ -193,7 +324,6 @@ void clInvertA(CL* cl, IplImage* img){
     
     size_t globalSize[1] = { tam };
     
-    //const char* k = "./CL/Invert.cl";
     const char* k = "./CLdemos/CL/Invert.cl";
     const char** fonte = getKernelPtr(k);
     
@@ -474,3 +604,140 @@ void cl_error(int error){
             printf("NO VALID CL ERROR CODE\n");
     }
 }
+
+/*
+ * 		VglImage
+ * 		BEGIN
+ */
+ 
+ 
+
+VglImage* getVglImage(const char* filename){
+	IplImage  *frame=0;
+	int c=0, nframes=0, tam=0;
+	char *b = (char*)malloc(VGL_NFRAMES_MAX*VGL_NFRAMES_MAX*VGL_NFRAMES_MAX);
+	
+	VglImage* vgl = (VglImage*)malloc(sizeof(VglImage));
+	vgl->ndarray = NULL;
+	
+	CvCapture* 	capture = cvCaptureFromAVI(filename);
+	if( !capture ){
+		printf("Error when reading steam_avi\n");
+		exit;
+	}
+	
+	while(1){
+		if(c==0)
+			vgl->ipl	=	cvQueryFrame(capture);
+		frame = cvQueryFrame(capture);
+		if(!frame)
+			break;
+		tam = frame->widthStep*frame->height;
+		for(int i=0; i<tam; i++, c++)
+			b[c] = frame->imageData[i];
+		nframes++;
+	}
+	vgl->ndarray = b;
+	vgl->ndim	 = VGL_MAX_DIM;
+	vgl->shape[0] = vgl->ipl->width;
+	vgl->shape[1] = vgl->ipl->height;
+	vgl->shape[2] = nframes;
+	vgl->depth	= vgl->ipl->depth;
+	vgl->nChannels = vgl->ipl->nChannels;
+	
+	cvReleaseImage(&frame);
+	cvReleaseCapture(&capture);	
+	return vgl;
+}
+ 
+ 
+ 
+ 
+/*
+VglImage* startVgl(){
+	VglImage* vgl;
+	vgl = (VglImage*)malloc(sizeof(VglImage));
+	vgl->ipl = (IplImage*)malloc(sizeof(IplImage));
+	vgl->ndarray = NULL;
+	return vgl;
+}
+void copyIpl(IplImage* img, IplImage* img2){
+	img->nSize		=	img2->nSize;
+	img->ID			=	img2->ID;
+	img->nChannels	=	img2->nChannels;
+	img->alphaChannel = img2->alphaChannel;
+	img->depth		=	img2->depth;
+	img->dataOrder	=	img2->dataOrder;
+	img->origin		=	img2->origin;
+	img->align		=	img2->align;
+	img->width		=	img2->width;
+	img->height		=	img2->height;
+	img->imageSize	=	img2->imageSize;
+	img->widthStep	=	img->width*img->nChannels;
+	img->imageData  = NULL;
+}
+
+void VglInfo(VglImage* img){
+	for(int i=0; i<VGL_MAX_DIM; i++)
+		printf("shape[%d] = %d\n", i, img->shape[i]);
+	printf("Ndim %d\n", img->ndim);
+	printf("Nchannels %d\n", img->nChannels);
+	//for(int i=0; i<img->shape[0]*img->shape[1]*img->shape[2]*img->nChannels; i++)
+		//printf("%d ", (int)img->ndarray[i]);
+	printf("\n");
+}
+int getNframes(const char* filename, IplImage* info){
+	IplImage* frame=0;
+	int nframes=0;
+	CvCapture* capture = cvCaptureFromAVI(filename);
+	if(!capture){
+		printf("Error when reading steam_avi\n");
+		exit;
+	}
+	while(1){
+		frame = cvQueryFrame(capture);
+		if(nframes==0){
+			//info = (IplImage*)malloc(sizeof(IplImage));
+			copyIpl(info, frame);
+		}
+		if(!frame)
+			break;
+		nframes++;
+	}
+	cvReleaseCapture(&capture);
+	cvReleaseImage(&frame);
+	return nframes;
+}
+VglImage* getVglImage(const char* filename, int nframes){
+	VglImage* vgl = startVgl();
+	IplImage* frame=0;
+	vgl->shape[2] = getNframes(filename, vgl->ipl);
+	if(nframes!=0)
+		vgl->shape[2] = nframes;
+	vgl->shape[0] = vgl->ipl->width;
+	vgl->shape[1] = vgl->ipl->height;
+	vgl->depth    = vgl->ipl->depth;
+	vgl->nChannels= vgl->ipl->nChannels;
+	vgl->ndim	  = 3;
+	CvCapture* 	capture = cvCaptureFromAVI(filename);
+	if( !capture ){
+		printf("Error when reading steam_avi\n");
+		exit;
+	}
+	int c=0;
+	vgl->ndarray = (char*)malloc(vgl->shape[0]*vgl->shape[1]*vgl->shape[2]*vgl->nChannels);
+	for(int i=0; i<vgl->shape[2]; i++){
+		frame = cvQueryFrame(capture);
+		if(!frame)
+			break;
+		for(int j=0; j<frame->width*frame->height*frame->nChannels; j++, c++)
+			vgl->ndarray[c] = frame->imageData[j];
+	}
+//	cvReleaseImage(&frame);
+	cvReleaseCapture(&capture);
+	return vgl;
+}
+/*
+ *			VglImage
+ *			END.
+ */
